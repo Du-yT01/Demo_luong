@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Báo cáo lương – Nhà máy chế biến cao su Chư Sê</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Toàn bộ CSS gói trong #pl-root, cùng bộ biến màu với app.css để ghép thành một tab */
+#pl-root{
+  --bg:#f3f5f4;--surface:#fff;--sunk:#e9edeb;--line:#d5dcd8;--fg:#17201c;--muted:#5d6b64;
+  --accent:#1d6b55;--accent-soft:#dcefe7;--bad:#b3261e;--hol:#7b3fa0;--warn:#9a5600;
+  --grid:#9aa7a0;--th:#eef2ef;--grp:#e4efe9;--tot:#d5e8de;
+  --c1:#1d6b55;--c2:#4f9d7e;--c3:#245a8f;--c4:#7aa6d6;--c5:#b07a1e;--c6:#7b3fa0;
+  --pos:#1d6b55;--neg:#c2554a;
+  font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.45;color:var(--fg);background:var(--bg);
+}
+@media (prefers-color-scheme:dark){#pl-root{
+  --bg:#111614;--surface:#18201d;--sunk:#202a26;--line:#2f3b36;--fg:#e4ebe7;--muted:#93a39b;
+  --accent:#4cbf98;--accent-soft:#1d3a30;--bad:#f2867d;--hol:#c99ae6;--warn:#f0a94a;
+  --grid:#3d4a44;--th:#1f2925;--grp:#1d3328;--tot:#24402f;
+  --c1:#4cbf98;--c2:#2f7d62;--c3:#8ab8ea;--c4:#43709f;--c5:#e0a94c;--c6:#c99ae6;
+  --pos:#4cbf98;--neg:#f2867d;
+}}
+#pl-root *{box-sizing:border-box}
+#pl-root button,#pl-root select,#pl-root input{font:inherit;color:inherit}
+#pl-root .n{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+#pl-root .muted{color:var(--muted)}
+#pl-root :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#pl-root svg{display:block;width:100%;height:auto;overflow:visible}
+#pl-root svg text{font-family:inherit}
+
+.pl-wrap{max-width:1480px;margin:0 auto;padding:16px 18px 40px}
+.pl-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;margin-bottom:14px}
+.pl-head h2{margin:0;font-size:20px;font-weight:700}
+.pl-head p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.pl-tag{font-size:12px;font-weight:600;color:var(--warn);background:#fdf0dc;padding:2px 9px;border-radius:20px;margin-left:6px;vertical-align:2px}
+@media (prefers-color-scheme:dark){.pl-tag{background:#3a2a12}}
+.pl-tools{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pl-tools label{font-size:12px;color:var(--muted)}
+.pl-tools select,.pl-tools input{height:34px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:0 9px}
+.pl-tools input{width:210px}
+.pl-btn{height:34px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:6px;padding:0 14px;font-weight:600;cursor:pointer}
+.pl-btn.ghost{background:var(--surface);color:var(--fg);border-color:var(--line)}
+@media (prefers-color-scheme:dark){.pl-btn{color:#0b1310}.pl-btn.ghost{color:var(--fg)}}
+
+.pl-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin-bottom:14px}
+.pl-kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 14px}
+.pl-kpi .k{font-size:12.5px;color:var(--muted)}
+.pl-kpi .v{font-size:21px;font-weight:700;margin-top:1px;font-variant-numeric:tabular-nums}
+.pl-kpi .d{font-size:12px;margin-top:1px}
+.pl-kpi.main{background:var(--accent);border-color:var(--accent);color:#fff}
+#pl-root .pl-kpi.main .k,#pl-root .pl-kpi.main .d,#pl-root .pl-kpi.main .muted,#pl-root .pl-kpi.main .up,#pl-root .pl-kpi.main .down{color:rgba(255,255,255,.9)}
+@media (prefers-color-scheme:dark){.pl-kpi.main{color:#0b1310}#pl-root .pl-kpi.main .k,#pl-root .pl-kpi.main .d,#pl-root .pl-kpi.main .muted,#pl-root .pl-kpi.main .up,#pl-root .pl-kpi.main .down{color:rgba(11,19,16,.82)}}
+.up{color:var(--pos)}.down{color:var(--neg)}
+
+.pl-row{display:grid;gap:14px;margin-bottom:14px}
+.pl-r1{grid-template-columns:1.6fr 1fr}
+@media (max-width:1100px){.pl-r1{grid-template-columns:1fr}}
+.pl-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;min-width:0;display:flex;flex-direction:column}
+.pl-card>h3{margin:0;padding:11px 14px 2px;font-size:15px;font-weight:600}
+.pl-card>.sub{padding:0 14px;font-size:12.5px;color:var(--muted)}
+.pl-cb{padding:10px 14px 14px;flex:1}
+.pl-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);margin-bottom:4px}
+.pl-legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;background:var(--c);vertical-align:-1px}
+.pl-legend .line::before{height:3px;vertical-align:3px;border-radius:2px}
+.hit{cursor:pointer}
+.hit:hover{opacity:.8}
+.pl-tip{position:fixed;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12px;padding:7px 9px;border-radius:6px;z-index:80;display:none;max-width:280px;line-height:1.5}
+.pl-donut{display:grid;grid-template-columns:minmax(150px,200px) 1fr;gap:14px;align-items:center}
+@media (max-width:520px){.pl-donut{grid-template-columns:1fr}}
+.pl-dl{display:flex;flex-direction:column;gap:7px;font-size:13px}
+.pl-dl div{display:grid;grid-template-columns:12px 1fr auto auto;gap:8px;align-items:baseline}
+.pl-dl i{width:10px;height:10px;border-radius:2px;background:var(--c);align-self:center}
+.pl-dl .p{font-weight:600;font-variant-numeric:tabular-nums}
+.pl-dl .d{font-size:12px;font-variant-numeric:tabular-nums;min-width:56px;text-align:right}
+
+/* Bảng lương chi tiết, theo cột sheet "Lương" */
+.pl-sheet{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.pl-sheet-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 14px}
+.pl-sheet-h h3{margin:0;font-size:15px;font-weight:600}
+.pl-sheet-h .muted{font-size:12.5px}
+.pl-lnk{border:0;background:none;color:var(--accent);cursor:pointer;padding:0;font-weight:600}
+.pl-scroll{overflow:auto;max-height:78vh;border-top:1px solid var(--grid)}
+table.pl-t{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:100%}
+.pl-t th,.pl-t td{border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);padding:4px 7px}
+.pl-t th:last-child,.pl-t td:last-child{border-right:0}
+.pl-t thead th{background:var(--th);font-weight:700;text-align:center;vertical-align:middle;line-height:1.3;position:sticky;z-index:3}
+.pl-t thead tr:nth-child(1) th{top:0}
+.pl-t thead tr:nth-child(2) th{top:var(--h1)}
+.pl-t thead tr:nth-child(3) th{top:var(--h2)}
+.pl-t tbody td{background:var(--surface);white-space:nowrap}
+.pl-t .s1{position:sticky;left:0;z-index:2;min-width:44px;text-align:center}
+.pl-t .s2{position:sticky;left:44px;z-index:2;min-width:180px}
+.pl-t thead .s1,.pl-t thead .s2{z-index:4}
+.pl-t tr.g td{background:var(--grp);font-weight:700}
+.pl-t tr.g td.s2{cursor:pointer}
+.pl-t tr.g .tg{display:inline-block;width:15px;color:var(--muted);font-weight:400}
+.pl-t tr.tot td{background:var(--tot);font-weight:700;position:sticky;bottom:0;z-index:2}
+.pl-t tr.tot td.s1,.pl-t tr.tot td.s2{z-index:3}
+.pl-t td.pay{font-weight:700}
+.pl-t td.hol{color:var(--hol)}
+.pl-t tr.p:hover td{background:var(--sunk)}
+.pl-t a.nm{color:inherit;text-decoration:none;border-bottom:1px dashed var(--muted);cursor:pointer}
+.pl-t a.nm:hover{color:var(--accent);border-color:var(--accent)}
+.pl-empty{padding:28px;text-align:center;color:var(--muted)}
+.pl-note{font-size:12.5px;color:var(--muted);margin:8px 2px 0}
+
+/* Phiếu lương từng người */
+.pl-dr{position:fixed;inset:0;z-index:70;display:none}
+.pl-dr.open{display:block}
+.pl-dr .bd{position:absolute;inset:0;background:rgba(0,0,0,.38)}
+.pl-dr .pn{position:absolute;right:0;top:0;bottom:0;width:min(560px,100%);background:var(--surface);overflow:auto;box-shadow:-6px 0 24px rgba(0,0,0,.2);display:flex;flex-direction:column}
+.pl-dr .top{display:flex;gap:8px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1}
+.pl-dr .top .grow{flex:1}
+.pl-dr .sm{height:30px;padding:0 10px;font-size:13px}
+.pl-dr .body{padding:14px 18px 26px}
+.pl-dr h4{margin:0;font-size:18px}
+.pl-dr .meta{color:var(--muted);font-size:12.5px;margin:2px 0 12px}
+.pl-dr .hero{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.pl-dr .hero>div{background:var(--sunk);border-radius:6px;padding:8px 10px}
+.pl-dr .hero .k{font-size:12px;color:var(--muted)}
+.pl-dr .hero .v{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.pl-dr .hero>.main{background:var(--accent);color:#fff}
+.pl-dr .hero .main .k{color:rgba(255,255,255,.88)}
+@media (prefers-color-scheme:dark){.pl-dr .hero .main{color:#0b1310}.pl-dr .hero .main .k{color:rgba(11,19,16,.8)}}
+.pl-dr h5{margin:16px 0 6px;font-size:13.5px}
+.pl-dr table{width:100%;border-collapse:collapse;font-size:13px}
+.pl-dr td,.pl-dr th{padding:6px 4px;border-bottom:1px solid var(--sunk);vertical-align:top}
+.pl-dr th{text-align:left;font-size:12px;color:var(--muted);font-weight:600}
+.pl-dr td.n,.pl-dr th.n{text-align:right}
+.pl-dr .fx{color:var(--muted);font-size:11.5px}
+.pl-dr tr.tot td{font-weight:700;border-top:2px solid var(--fg);border-bottom:0}
+.pl-dr tr.m td.n{color:var(--neg)}
+.pl-dr .bar{height:5px;background:var(--sunk);border-radius:3px;margin-top:3px}
+.pl-dr .bar i{display:block;height:100%;border-radius:3px;background:var(--c1)}
+
+@media print{
+  #pl-root{background:#fff;color:#000;--surface:#fff;--th:#fff;--grp:#f2f2f2;--tot:#e6e6e6;--grid:#000;--sunk:#fff}
+  body.pl-print-table .pl-head,body.pl-print-table .pl-kpis,body.pl-print-table .pl-row,body.pl-print-table .pl-note,body.pl-print-table .pl-dr,body.pl-print-table .pl-sheet-h .pl-lnk{display:none!important}
+  body.pl-print-table .pl-scroll{max-height:none;overflow:visible}
+  body.pl-print-table .pl-t thead th,body.pl-print-table .pl-t .s1,body.pl-print-table .pl-t .s2,body.pl-print-table .pl-t tr.tot td{position:static}
+  body.pl-print-table table.pl-t{font-size:8.5px}
+  body.pl-print-table .pl-t th,body.pl-print-table .pl-t td{padding:2px 3px}
+  body.pl-print-slip .pl-wrap{display:none}
+  body.pl-print-slip .pl-dr{display:block;position:static}
+  body.pl-print-slip .pl-dr .bd,body.pl-print-slip .pl-dr .top{display:none}
+  body.pl-print-slip .pl-dr .pn{position:static;width:auto;box-shadow:none}
+  .pl-tip{display:none!important}
+  @page{size:A4 landscape;margin:7mm}
+}
+</style>
+</head>
+<body style="margin:0">
+<div id="pl-root"><div class="pl-wrap">
+
+  <div class="pl-head">
+    <div>
+      <h2>Báo cáo lương công nhân <span class="pl-tag" title="Số liệu sinh mẫu theo định mức đã chốt, chỉ để duyệt giao diện">Dữ liệu mẫu</span></h2>
+      <p>Nhà máy chế biến cao su Chư Sê. Bấm vào biểu đồ để chọn tháng hoặc vị trí, bấm tên người trong bảng để xem phiếu lương.</p>
+    </div>
+    <div class="pl-tools">
+      <label for="pl-month">Tháng</label><select id="pl-month"></select>
+      <label for="pl-grp">Vị trí</label><select id="pl-grp"><option value="">Tất cả</option></select>
+      <input id="pl-q" type="search" placeholder="Tìm họ tên hoặc mã số thuế" aria-label="Tìm người">
+    </div>
+  </div>
+
+  <div class="pl-kpis" id="pl-kpis"></div>
+
+  <div class="pl-row pl-r1">
+    <section class="pl-card">
+      <h3>Biến động tổng lương theo tháng</h3>
+      <div class="sub">Cột: tổng lương xếp chồng theo vị trí. Đường phía trên: bình quân tổng lương mỗi người (triệu đ)</div>
+      <div class="pl-cb"><div class="pl-legend" id="pl-legend"></div><div id="pl-trend"></div></div>
+    </section>
+    <section class="pl-card">
+      <h3>Cơ cấu tổng lương theo vị trí</h3>
+      <div class="sub" id="pl-donut-sub"></div>
+      <div class="pl-cb"><div class="pl-donut"><div id="pl-donut"></div><div class="pl-dl" id="pl-dl"></div></div></div>
+    </section>
+  </div>
+
+  <section class="pl-sheet">
+    <div class="pl-sheet-h">
+      <h3 id="pl-t-title">Bảng thanh toán tiền lương</h3>
+      <span class="muted" id="pl-t-info"></span>
+      <span><button class="pl-lnk" id="pl-toggle" type="button">Thu gọn tất cả</button> &nbsp; <button class="pl-btn ghost sm" id="pl-print" type="button" style="height:30px">In bảng</button></span>
+    </div>
+    <div class="pl-scroll"><table class="pl-t" id="pl-t"></table></div>
+  </section>
+  <p class="pl-note">Lương ngày lễ: ngày lễ ×3, riêng ngày thành lập ×2. Ăn giữa ca 20.000 đ/ngày, ăn ca sáng 15.000 đ/ngày. ĐPCĐ = 0,5% × (Tổng lương − BHXH, YT − Truy thu BH). Tiền lương còn nhận = Tổng cộng thanh toán − các khoản khấu trừ.</p>
+</div>
+
+<div class="pl-dr" id="pl-dr" aria-hidden="true">
+  <div class="bd" data-close></div>
+  <div class="pn" role="dialog" aria-modal="true" aria-labelledby="pl-dr-name">
+    <div class="top">
+      <button class="pl-btn ghost sm" type="button" data-nav="-1" aria-label="Người trước">‹ Trước</button>
+      <button class="pl-btn ghost sm" type="button" data-nav="1" aria-label="Người sau">Sau ›</button>
+      <span class="grow"></span>
+      <button class="pl-btn ghost sm" type="button" id="pl-slip-print">In phiếu</button>
+      <button class="pl-btn ghost sm" type="button" data-close>Đóng</button>
+    </div>
+    <div class="body" id="pl-dr-body"></div>
+  </div>
+</div>
+<div class="pl-tip" id="pl-tip"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+/* ================= 1. THAM SỐ ĐÃ CHỐT ================= */
+const DG=209192, AN_GIUA=20000, AN_SANG=15000, BH_BASE=3700000, BH_RATE=0.105, CD_RATE=0.005;
+// Ngày lễ theo tháng: [ngày, tên, hệ số] — mặc định ×3, riêng ngày thành lập ×2
+const HOLIDAYS={'2026-05':[[1,'Quốc tế Lao động',3]],'2026-09':[[2,'Quốc khánh',3]]};
+const MONTHS=['2026-05','2026-06','2026-07','2026-08','2026-09','2026-10'];
+
+/* Vị trí và các khoản cấu thành: [nhãn, nguồn tấn, định mức công/tấn] */
+const GROUPS=[
+  {k:'LX',n:'Công nhân lái xe mủ',s:'Lái xe mủ',c:'var(--c5)',by:'kg',parts:[['Mủ nước Chư Sê','QN',0.8],['Mủ nước làm RSS','QR',0.8],['Đông tạp Chư Sê','QT',0.8],['Mủ nước Ia Lâu','IN',1.2],['Đông tạp Ia Lâu','IT',0.46]]},
+  {k:'DD',n:'Công nhân đánh đông xuống mủ',s:'Đánh đông',c:'var(--c2)',by:'cong',parts:[['SVR3L + 10','QN',0.65],['SVR10 + NL','QT+IT',0.35],['RSS','QR',0.94]]},
+  {k:'CK',n:'Công nhân CKCĐTN',s:'CKCĐ + NT',c:'var(--c3)',by:'cong',parts:[['SVR3L + 10','S3',0.22],['SVR10 + NL','K10+T10+NL',0.4],['RSS','RSS',0.26]]},
+  {k:'CT',n:'Công nhân vệ sinh thùng',s:'Chà thùng',c:'var(--c4)',by:'cong',parts:[['SVR3L + 10','S3',0.09],['SVR10 + NL','K10+T10+NL',0.2]]},
+  {k:'XE',n:'Công nhân lái xe nâng',s:'Xe nâng',c:'var(--c6)',by:'cong',parts:[['Xe nâng + xe múc','PS',0.054],['Xúc lật cán ủ','K10+T10',0.12],['Lái máy xuất hàng','S3+K10+T10',0.05]]},
+  {k:'CB',n:'Công nhân chế biến',s:'Chế biến',c:'var(--c1)',by:'cong',parts:[['TP SVR3L','S3',1.24],['TP SVR10','K10+T10',1.62],['Ngoại lệ','NL',2.75],['Cán ủ','K10+T10',1.63],['Cán tạo tờ','RSS',2.7],['Trực lò RSS','RSS',1.14],['TP RSS','RSS',1.96]]}
+];
+const ROMAN=['I','II','III','IV','V','VI'];
+
+/* ================= 2. DỮ LIỆU MẪU ================= */
+const PEOPLE=[["LX","Công nhân lái xe mủ",[["Rơ Mah Hùng","099000000001"],["Siu Dũng","099000000002"],["Lê Hạnh","099000000003"],["Ksor Vân","099000000004"],["Trần Long","099000000005"],["Trần Thị Trung","099000000006"],["Kpă Hà","099000000007"]]],["DD","Công nhân đánh đông xuống mủ",[["Bùi Thị Duy","099000000008"],["Kpă Dũng","099000000009"],["Phạm Minh Vân","099000000010"],["Trần Thanh Dũng","099000000011"],["Bùi Văn Duy","099000000012"],["Hoàng Hữu Trang","099000000013"],["Hoàng Hiếu","099000000014"]]],["CK","Công nhân CKCĐTN",[["Ngô Lan","099000000015"],["Phạm Minh Thảo","099000000016"],["Phạm Hà","099000000017"],["Trần Minh Lực","099000000018"]]],["CT","Công nhân vệ sinh thùng",[["Kpă Quân","099000000019"],["Rah Lan Vân","099000000020"],["Rah Lan Thảo","099000000021"]]],["XE","Công nhân lái xe nâng",[["Ngô Minh Lan","099000000022"],["Bùi Thị Tiến","099000000023"]]],["CB","Công nhân chế biến",[["Ngô Lực","099000000024"],["Rơ Mah Tuấn","099000000025"],["Ngô Thị Hiếu","099000000026"],["Kpă Khang","099000000027"],["Puih Trang","099000000028"],["Trần Thị Duy","099000000029"],["Rơ Mah Sơn","099000000030"],["Ksor Lợi","099000000031"],["Puih Vân","099000000032"],["Rah Lan Hà","099000000033"],["Lê Hữu Yến","099000000034"],["Lê Văn Phúc","099000000035"],["Rah Lan Phong","099000000036"],["Siu Tâm","099000000037"],["Nguyễn Quốc Tâm","099000000038"],["Võ Thị Lực","099000000039"],["Trần Minh Phong","099000000040"],["Hoàng Minh Thu","099000000041"],["Siu Lực","099000000042"],["Lê Đức Tuấn","099000000043"],["Siu Duy","099000000044"],["Đỗ Đức Trung","099000000045"],["Đỗ Thanh Tâm","099000000046"],["Siu Mai","099000000047"],["Hoàng Thị Lan","099000000048"],["Hoàng Minh Mai","099000000049"],["Nguyễn Quốc Vân","099000000050"],["Võ Hữu Phong","099000000051"],["Nguyễn Đức Trang","099000000052"],["Ksor Hằng","099000000053"],["Rơ Mah Hòa","099000000054"],["Trần Quốc Duy","099000000055"],["Siu Thu","099000000056"],["Phạm Quốc Thu","099000000057"],["Trần Minh Hà","099000000058"],["Đặng Quốc Khang","099000000059"],["Phạm Ngọc Lợi","099000000060"],["Trần Thị An","099000000061"],["Hoàng Hạnh","099000000062"],["Nguyễn Thị Long","099000000063"]]]];
+let seed=9026;const rnd=()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const daysIn=m=>{const[y,mm]=m.split('-').map(Number);return new Date(y,mm,0).getDate()};
+const HS=[1.47,1.66,1.83,2.0,2.18,2.34,2.56];
+const STAFF=[];
+PEOPLE.forEach(([k,,list])=>list.forEach(([name,mst],i)=>STAFF.push({id:k+'-'+i,k,name,mst,lead:i===0&&list.length>2,hs:HS[Math.floor(rnd()*HS.length)],pc:rnd()<.45?0.15:0,truy:rnd()<.06?Math.round(120+rnd()*300)*1000:0,w:0.7+rnd()*0.6,eff:0.85+rnd()*0.3})));
+STAFF.forEach(p=>{p.bhHs=p.hs+p.pc+(p.lead?0.1:0);p.bh=Math.round(p.bhHs*BH_BASE*BH_RATE)});
+
+const SEASON={'2026-05':.78,'2026-06':.88,'2026-07':.96,'2026-08':1.02,'2026-09':1.0,'2026-10':1.08};
+function tons(m){const f=SEASON[m];const j=()=>0.95+rnd()*0.1;return{S3:282*f*j(),K10:57*f*j(),T10:335*f*j(),NL:2.4*f*j(),RSS:24*f*j(),QN:290*f*j(),QT:50*f*j(),IN:6*f*j(),IT:61*f*j(),QR:25*f*j(),PS:281*f*j()}}
+const tsum=(T,src)=>src.split('+').reduce((s,k)=>s+T[k],0);
+
+function buildMonth(m){
+  const T=tons(m),n=daysIn(m),hol=HOLIDAYS[m]||[],holDays=hol.map(h=>h[0]),mult=hol.reduce((s,h)=>s+h[2],0);
+  const rows=[];
+  GROUPS.forEach(g=>{
+    const mem=STAFF.filter(p=>p.k===g.k);
+    const att=mem.map(p=>{const days=[];for(let d=1;d<=n;d++){if(holDays.includes(d)?rnd()<.85:rnd()<(g.k==='LX'?.9:.8+p.eff*.06))days.push(d)}
+      return{p,days,cong:days.length*(p.lead?1.1:1),sang:(g.k==='CB'||g.k==='CK')?Math.round(rnd()*6):0,parts:{},sp:0,le:0}});
+    g.parts.forEach(([lbl,src,dm])=>{
+      const fund=tsum(T,src)*dm*DG,normal=fund*(1-holDays.length/n),holFund=fund*mult/n;
+      const wN=att.map(a=>{const nd=a.days.filter(d=>!holDays.includes(d)).length;return g.by==='kg'?a.p.w*nd:nd*(a.p.lead?1.1:1)});
+      const wH=att.map(a=>a.days.some(d=>holDays.includes(d))?(g.by==='kg'?a.p.w:(a.p.lead?1.1:1)):0);
+      const sN=wN.reduce((a,b)=>a+b,0)||1,sH=wH.reduce((a,b)=>a+b,0)||1;
+      att.forEach((a,i)=>{const v=normal*wN[i]/sN;a.sp+=v;a.parts[lbl]=(a.parts[lbl]||0)+v;if(holDays.length)a.le+=holFund*wH[i]/sH});
+    });
+    att.forEach(a=>{
+      const p=a.p,sp=Math.round(a.sp),le=Math.round(a.le),tong=sp+le;
+      const ng=a.days.length,tg=ng*AN_GIUA,ns=a.sang,ts=ns*AN_SANG,tt=tong+tg+ts;
+      const truy=m==='2026-09'?p.truy:0,bh=p.bh,cd=Math.round((tong-bh-truy)*CD_RATE),ung=tg,k1=0,k2=0;
+      rows.push({id:p.id,k:g.k,name:p.name,mst:p.mst,spc:sp/DG,sp,lec:le/DG,le,tong,ng,tg,ns,ts,tt,cd,truy,ung,bh,k1,k2,nhan:tt-cd-truy-ung-bh-k1-k2,
+        days:a.days.length,holWorked:a.days.some(d=>holDays.includes(d)),parts:a.parts,p});
+    });
+  });
+  return{m,rows,hol};
+}
+const DATA={};MONTHS.forEach(m=>DATA[m]=buildMonth(m));
+
+/* ================= 3. TIỆN ÍCH ================= */
+const $=s=>document.querySelector(s);
+const fmt=x=>Math.round(x).toLocaleString('vi-VN');
+const fc=x=>x.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const f1=x=>x.toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1});
+const fM=x=>f1(x/1e6);
+const pct=x=>f1(x)+'%';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mLbl=m=>m.slice(5)+'/'+m.slice(0,4);
+const G=k=>GROUPS.find(g=>g.k===k);
+const st={m:'2026-09',g:'',q:'',bin:null,col:new Set(),slip:null};
+const KEYS=['spc','sp','lec','le','tong','ng','tg','ns','ts','tt','cd','truy','ung','bh','k1','k2','nhan'];
+const sum=rows=>{const o={};KEYS.forEach(k=>o[k]=rows.reduce((s,r)=>s+r[k],0));return o};
+const BIN=1e6;
+const baseRows=m=>{const q=st.q.trim().toLowerCase();return DATA[m].rows.filter(r=>(!st.g||r.k===st.g)&&(!q||(r.name+' '+r.mst).toLowerCase().includes(q)))};
+const rowsOf=m=>baseRows(m).filter(r=>st.bin==null||Math.floor(r.nhan/BIN)===st.bin);
+const groupsShown=()=>GROUPS.filter(g=>!st.g||g.k===st.g);
+const prevM=()=>{const i=MONTHS.indexOf(st.m);return i>0?MONTHS[i-1]:null};
+const chg=(a,b)=>b?(a-b)/b*100:null;
+const dTxt=(p,inv)=>p==null?'<span class="muted">–</span>':`<span class="${(p>=0)!==!!inv?'up':'down'}">${p>=0?'▲':'▼'} ${f1(Math.abs(p))}%</span>`;
+function tip(e,h){const t=$('#pl-tip');t.innerHTML=h;t.style.display='block';const x=Math.min(e.clientX+14,innerWidth-t.offsetWidth-8),y=Math.min(e.clientY+14,innerHeight-t.offsetHeight-8);t.style.left=x+'px';t.style.top=y+'px'}
+const untip=()=>{$('#pl-tip').style.display='none'};
+function bindTips(box){box.querySelectorAll('[data-tip]').forEach(el=>{el.addEventListener('mousemove',e=>tip(e,el.dataset.tip));el.addEventListener('mouseleave',untip)})}
+function niceTop(mx,steps=5){const step=Math.pow(10,Math.floor(Math.log10(mx/steps)));const n=[1,2,2.5,5,10].map(x=>x*step).find(x=>mx/x<=steps)||step*10;return{top:Math.ceil(mx/n)*n,n}}
+
+$('#pl-month').innerHTML=MONTHS.slice().reverse().map(m=>`<option value="${m}"${m===st.m?' selected':''}>${mLbl(m)}</option>`).join('');
+GROUPS.forEach(g=>$('#pl-grp').insertAdjacentHTML('beforeend',`<option value="${g.k}">${esc(g.s)}</option>`));
+
+/* ================= 4. KPI ================= */
+function renderKpis(){
+  const r=baseRows(st.m),t=sum(r),pm=prevM(),pt=pm?sum(baseRows(pm)):null;
+  const ded=t.cd+t.truy+t.ung+t.bh+t.k1+t.k2,avg=r.length?t.tong/r.length:0,pavg=pm&&baseRows(pm).length?pt.tong/baseRows(pm).length:null;
+  const vs=pm?` so với ${mLbl(pm)}`:'';
+  const K=[
+    ['main','Tiền lương còn nhận',fmt(t.nhan),pt?dTxt(chg(t.nhan,pt.nhan))+vs:''],
+    ['','Tổng lương',fmt(t.tong),pt?dTxt(chg(t.tong,pt.tong))+vs:''],
+    ['','Lương làm ngày lễ',fmt(t.le),t.le?pct(t.le/t.tong*100)+' tổng lương':'Tháng không có ngày lễ'],
+    ['','Bình quân mỗi người',fmt(avg),pavg?dTxt(chg(avg,pavg))+vs:''],
+    ['','Công sản phẩm quy đổi',fc(t.spc+t.lec),fmt(t.ng)+' ngày công đi làm'],
+    ['','Khấu trừ',fmt(ded),pct(t.tt?ded/t.tt*100:0)+' tổng thanh toán'],
+    ['','Số công nhân',fmt(r.length),groupsShown().length+' vị trí']
+  ];
+  $('#pl-kpis').innerHTML=K.map(([c,k,v,d])=>`<div class="pl-kpi ${c}"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+}
+
+/* ================= 5. XU HƯỚNG ================= */
+function renderTrend(){
+  const box=$('#pl-trend'),W=Math.max(box.clientWidth,320),H=290,pl=46,pr=10,pt=26,pb=34;
+  const gs=groupsShown();
+  const data=MONTHS.map(m=>{const r=baseRows(m);const v=gs.map(g=>r.filter(x=>x.k===g.k).reduce((s,x)=>s+x.tong,0));const tot=v.reduce((a,b)=>a+b,0);return{m,v,tot,avg:r.length?tot/r.length:0}});
+  const A=niceTop(Math.max(...data.map(d=>d.tot),1)*1.38),y=v=>pt+(H-pt-pb)*(1-v/A.top);
+  const amx=Math.max(...data.map(d=>d.avg),1),amn=Math.min(...data.map(d=>d.avg)),lo=amn,hi=amx>amn?amx:amn+1;
+  const band=(H-pt-pb)*0.2,y2=v=>pt+4+band*(1-(v-lo)/(hi-lo||1));
+  const bw=(W-pl-pr)/data.length,barW=Math.min(52,bw*.56);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tổng lương theo tháng">`;
+  for(let v=0;v<=A.top+1e-6;v+=A.n)s+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--sunk)"/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${fM(v)}</text>`;
+  s+=`<text x="${pl-6}" y="10" text-anchor="end" font-size="10.5" fill="var(--muted)">triệu đ</text>`;
+  
+  data.forEach((d,i)=>{
+    const cx=pl+bw*i+bw/2,sel=d.m===st.m,hol=(HOLIDAYS[d.m]||[]).length;
+    const tt=`<b>Tháng ${mLbl(d.m)}</b>: ${fmt(d.tot)} đ<br>`+gs.map((g,j)=>`${esc(g.s)}: ${fmt(d.v[j])} (${pct(d.tot?d.v[j]/d.tot*100:0)})`).join('<br>')+`<br>Bình quân/người: ${fmt(d.avg)} đ`;
+    s+=`<g class="hit" data-m="${d.m}" data-tip="${esc(tt)}"><rect x="${pl+bw*i+2}" y="${pt-18}" width="${bw-4}" height="${H-pt-pb+18}" rx="4" fill="${sel?'var(--accent-soft)':'transparent'}"/>`;
+    let acc=0;d.v.forEach((v,j)=>{if(!v)return;s+=`<rect x="${cx-barW/2}" y="${y(acc+v)}" width="${barW}" height="${Math.max(0,y(acc)-y(acc+v))}" fill="${gs[j].c}"/>`;acc+=v});
+    s+=`<text x="${cx}" y="${y(d.tot)-6}" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--fg)">${fM(d.tot)}</text>`;
+    s+=`<text x="${cx}" y="${H-16}" text-anchor="middle" font-size="12" fill="${sel?'var(--fg)':'var(--muted)'}" font-weight="${sel?700:400}">${mLbl(d.m)}</text>`;
+    if(hol)s+=`<text x="${cx}" y="${H-2}" text-anchor="middle" font-size="10" fill="var(--hol)">có ngày lễ</text>`;
+    s+='</g>';
+  });
+  const pts=data.map((d,i)=>[pl+bw*i+bw/2,y2(d.avg)]);
+  s+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--fg)" stroke-width="2" stroke-dasharray="1 0" pointer-events="none"/>`;
+  pts.forEach((p,i)=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="var(--surface)" stroke="var(--fg)" stroke-width="2" pointer-events="none"/><text x="${p[0]}" y="${p[1]-8}" text-anchor="middle" font-size="11" fill="var(--muted)" pointer-events="none">${fM(data[i].avg)}</text>`);
+  box.innerHTML=s+'</svg>';
+  bindTips(box);
+  box.querySelectorAll('[data-m]').forEach(el=>el.addEventListener('click',()=>{st.m=el.dataset.m;$('#pl-month').value=st.m;st.bin=null;renderAll()}));
+  $('#pl-legend').innerHTML=gs.map(g=>`<span style="--c:${g.c}">${esc(g.s)}</span>`).join('')+'<span class="line" style="--c:var(--fg)">Bình quân/người</span>';
+}
+
+/* ================= 6. CƠ CẤU (donut) ================= */
+function arc(cx,cy,r,ri,a0,a1){const L=a1-a0>Math.PI?1:0,p=(a,rr)=>[cx+rr*Math.sin(a),cy-rr*Math.cos(a)];const[x0,y0]=p(a0,r),[x1,y1]=p(a1,r),[x2,y2]=p(a1,ri),[x3,y3]=p(a0,ri);
+  return `M${x0} ${y0}A${r} ${r} 0 ${L} 1 ${x1} ${y1}L${x2} ${y2}A${ri} ${ri} 0 ${L} 0 ${x3} ${y3}Z`}
+function renderDonut(){
+  const r=baseRows(st.m),pm=prevM(),pr=pm?baseRows(pm):[];
+  const gs=groupsShown().map(g=>{const rr=r.filter(x=>x.k===g.k);return{g,n:rr.length,v:rr.reduce((s,x)=>s+x.tong,0),pv:pr.filter(x=>x.k===g.k).reduce((s,x)=>s+x.tong,0)}}).filter(x=>x.n);
+  const T=gs.reduce((s,x)=>s+x.v,0)||1,N=gs.reduce((s,x)=>s+x.n,0);
+  $('#pl-donut-sub').textContent='Tháng '+mLbl(st.m)+', bấm phần để lọc theo vị trí';
+  let s=`<svg viewBox="0 0 200 200" role="img" aria-label="Cơ cấu tổng lương theo vị trí">`,a=0;
+  gs.forEach(x=>{const b=a+x.v/T*Math.PI*2;s+=`<path class="hit" data-g="${x.g.k}" d="${arc(100,100,92,58,a,Math.min(b,a+Math.PI*2-1e-4))}" fill="${x.g.c}" stroke="var(--surface)" stroke-width="2" data-tip="${esc(`<b>${x.g.s}</b>: ${fmt(x.v)} đ (${pct(x.v/T*100)})<br>${x.n} người`)}"/>`;a=b});
+  s+=`<text x="100" y="94" text-anchor="middle" font-size="12" fill="var(--muted)">Tổng lương</text><text x="100" y="114" text-anchor="middle" font-size="19" font-weight="700" fill="var(--fg)">${fM(T)} tr</text></svg>`;
+  $('#pl-donut').innerHTML=s;bindTips($('#pl-donut'));
+  $('#pl-donut').querySelectorAll('[data-g]').forEach(el=>el.addEventListener('click',()=>{untip();setGroup(st.g===el.dataset.g?'':el.dataset.g)}));
+  $('#pl-dl').innerHTML=gs.map(x=>`<div style="--c:${x.g.c}"><i></i><span>${esc(x.g.s)} <span class="muted">· ${x.n} người</span></span><span class="p">${pct(x.v/T*100)}</span><span class="d" title="So với tháng trước">${pm?dTxt(chg(x.v,x.pv)):''}</span></div>`).join('');
+}
+
+/* ================= 10. BẢNG LƯƠNG (theo cột sheet "Lương") ================= */
+const COLS=[['spc',fc],['sp',fmt],['lec',fc],['le',fmt],['tong',fmt],['ng',fmt],['tg',fmt],['ns',fmt],['ts',fmt],['tt',fmt],['cd',fmt],['truy',fmt],['ung',fmt],['bh',fmt],['k1',fmt],['k2',fmt],['nhan',fmt]];
+let ORDER=[];
+function renderTable(){
+  const r=rowsOf(st.m),[y,mm]=[st.m.slice(0,4),st.m.slice(5)],hol=DATA[st.m].hol;
+  $('#pl-t-title').textContent=`Bảng thanh toán tiền lương tháng ${mm}/${y}`;
+  $('#pl-t-info').innerHTML=(hol.length?'Ngày lễ: '+hol.map(h=>`<b style="color:var(--hol)">${String(h[0]).padStart(2,'0')}/${mm} ${esc(h[1])} ×${h[2]}</b>`).join(', '):'Tháng không có ngày lễ');
+  const head=`<thead>
+<tr><th class="s1" rowspan="3">STT</th><th class="s2" rowspan="3">HỌ VÀ TÊN</th><th rowspan="3">Mã<br>Số thuế<br>cá nhân</th>
+<th colspan="2" rowspan="2">Lương sản phẩm</th><th colspan="2" rowspan="2">Lương làm ngày lễ</th><th rowspan="3">Tổng lương</th>
+<th colspan="4">Tiền ăn ca</th><th rowspan="3">Tổng cộng<br>số tiền<br>thanh toán</th><th colspan="6">Các khoản khấu trừ</th><th rowspan="3">Tiền lương<br>còn nhận</th><th rowspan="3">Ký nhận</th></tr>
+<tr><th colspan="2">Giữa ca</th><th colspan="2">Ca sáng</th><th rowspan="2">ĐPCĐ</th><th rowspan="2">Truy thu<br>BH</th><th rowspan="2">Ứng tiền<br>ăn ca</th><th>BHXH, YT</th><th colspan="2">Khoản khác</th></tr>
+<tr><th>Công</th><th>Tiền</th><th>Công</th><th>Tiền</th><th>công</th><th>Tiền</th><th>công</th><th>Tiền</th><th>Tháng ${mm}/${y}</th><th></th><th></th></tr></thead>`;
+  const cells=o=>COLS.map(([k,f])=>{const v=o[k];return `<td class="n${k==='nhan'?' pay':''}${(k==='le'||k==='lec')&&v?' hol':''}">${v?f(v):''}</td>`}).join('');
+  let body='',stt=0;ORDER=[];
+  GROUPS.forEach((g,gi)=>{
+    const rr=r.filter(x=>x.k===g.k);if(!rr.length)return;
+    const open=!st.col.has(g.k);
+    body+=`<tr class="g"><td class="s1">${ROMAN[gi]}</td><td class="s2" data-g="${g.k}" tabindex="0" aria-expanded="${open}"><span class="tg">${open?'−':'+'}</span>${esc(g.n)} <span class="muted" style="font-weight:400">(${rr.length})</span></td><td></td>${cells(sum(rr))}<td></td></tr>`;
+    rr.forEach(x=>{stt++;ORDER.push(x.id);if(open)body+=`<tr class="p"><td class="s1">${stt}</td><td class="s2"><a class="nm" data-id="${x.id}" tabindex="0">${esc(x.name)}</a></td><td>${esc(x.mst)}</td>${cells(x)}<td></td></tr>`});
+  });
+  body+=`<tr class="tot"><td class="s1"></td><td class="s2">TỔNG CỘNG</td><td></td>${cells(sum(r))}<td></td></tr>`;
+  const t=$('#pl-t');
+  t.innerHTML=r.length?head+'<tbody>'+body+'</tbody>':'<tbody><tr><td class="pl-empty">Không có người nào khớp bộ lọc.</td></tr></tbody>';
+  const tr=t.querySelectorAll('thead tr');if(tr.length){let h=0;['--h1','--h2'].forEach((v,i)=>{h+=tr[i].getBoundingClientRect().height;t.style.setProperty(v,h+'px')})}
+  $('#pl-toggle').textContent=st.col.size>=groupsShown().length?'Mở rộng tất cả':'Thu gọn tất cả';
+}
+
+/* ================= 11. PHIẾU LƯƠNG TỪNG NGƯỜI ================= */
+function openSlip(id){
+  st.slip=id;const x=DATA[st.m].rows.find(r=>r.id===id);if(!x)return;const g=G(x.k),p=x.p,[yy,mm]=[st.m.slice(0,4),st.m.slice(5)];
+  const grpRows=DATA[st.m].rows.filter(r=>r.k===x.k),gavg=grpRows.reduce((s,r)=>s+r.tong,0)/grpRows.length;
+  const rank=grpRows.slice().sort((a,b)=>b.tong-a.tong).findIndex(r=>r.id===id)+1;
+  const parts=Object.entries(x.parts).filter(([,v])=>v>=0.5),pmax=Math.max(...parts.map(([,v])=>v),1);
+  const hist=MONTHS.map(m=>({m,r:DATA[m].rows.find(r=>r.id===id)}));
+  const hm=Math.max(...hist.map(h=>h.r?h.r.nhan:0),1);
+  const W=500,H=120,bw=W/hist.length;
+  let spark=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tiền lương còn nhận 6 tháng">`;
+  hist.forEach((h,i)=>{const v=h.r?h.r.nhan:0,bh=(H-34)*v/hm,cx=bw*i+bw/2,sel=h.m===st.m;
+    spark+=`<rect x="${cx-16}" y="${H-20-bh}" width="32" height="${bh}" rx="2" fill="${sel?'var(--accent)':'var(--c4)'}"/><text x="${cx}" y="${H-24-bh}" text-anchor="middle" font-size="11" fill="var(--fg)">${fM(v)}</text><text x="${cx}" y="${H-5}" text-anchor="middle" font-size="11" fill="${sel?'var(--fg)':'var(--muted)'}" font-weight="${sel?700:400}">${mLbl(h.m).slice(0,2)}/${h.m.slice(2,4)}</text>`});
+  spark+='</svg>';
+  const pv=hist[MONTHS.indexOf(st.m)-1];
+  $('#pl-dr-body').innerHTML=`
+  <h4 id="pl-dr-name">${esc(x.name)}</h4>
+  <div class="meta">${esc(g.s)} · MST ${esc(x.mst)} · Phiếu lương tháng ${mm}/${yy} · Đi làm ${x.days} ngày${x.holWorked&&DATA[st.m].hol.length?' (có làm ngày lễ)':''}</div>
+  <div class="hero"><div class="main"><div class="k">Tiền lương còn nhận</div><div class="v">${fmt(x.nhan)}</div></div>
+    <div><div class="k">Tổng lương</div><div class="v">${fmt(x.tong)}</div></div>
+    <div><div class="k">So với bình quân tổ</div><div class="v">${x.tong>=gavg?'+':''}${pct(chg(x.tong,gavg))}</div></div></div>
+  <div class="muted" style="font-size:12.5px">Xếp thứ ${rank}/${grpRows.length} trong ${esc(g.s)} về tổng lương${pv&&pv.r?`. Tiền còn nhận ${x.nhan>=pv.r.nhan?'tăng':'giảm'} ${pct(Math.abs(chg(x.nhan,pv.r.nhan)))} so với tháng trước`:''}.</div>
+  <h5>Lương sản phẩm theo công đoạn</h5>
+  <table><thead><tr><th>Công đoạn / loại mủ</th><th class="n">Công</th><th class="n">Tiền</th></tr></thead><tbody>
+  ${parts.sort((a,b)=>b[1]-a[1]).map(([l,v])=>`<tr><td>${esc(l)}<div class="bar"><i style="width:${v/pmax*100}%;background:${g.c}"></i></div></td><td class="n">${fc(v/DG)}</td><td class="n">${fmt(v)}</td></tr>`).join('')}
+  ${x.le?`<tr><td style="color:var(--hol)">Lương làm ngày lễ<div class="fx">${DATA[st.m].hol.map(h=>`${String(h[0]).padStart(2,'0')}/${mm} ${h[1]} ×${h[2]}`).join(', ')}</div></td><td class="n">${fc(x.lec)}</td><td class="n">${fmt(x.le)}</td></tr>`:''}
+  <tr class="tot"><td>Tổng lương</td><td class="n">${fc(x.spc+x.lec)}</td><td class="n">${fmt(x.tong)}</td></tr></tbody></table>
+  <h5>Từ tổng lương đến tiền còn nhận</h5>
+  <table><tbody>
+   <tr><td>Tổng lương</td><td class="n">${fmt(x.tong)}</td></tr>
+   <tr><td>Ăn giữa ca<div class="fx">${x.ng} ngày × ${fmt(AN_GIUA)}</div></td><td class="n">${fmt(x.tg)}</td></tr>
+   <tr><td>Ăn ca sáng<div class="fx">${x.ns} ngày × ${fmt(AN_SANG)}</div></td><td class="n">${fmt(x.ts)}</td></tr>
+   <tr class="tot"><td>Tổng cộng thanh toán</td><td class="n">${fmt(x.tt)}</td></tr>
+   <tr class="m"><td>BHXH, YT<div class="fx">Hệ số ${p.bhHs.toLocaleString('vi-VN',{maximumFractionDigits:2})} × ${fmt(BH_BASE)} × 10,5%</div></td><td class="n">−${fmt(x.bh)}</td></tr>
+   <tr class="m"><td>Đoàn phí công đoàn<div class="fx">(${fmt(x.tong)} − ${fmt(x.bh)} − ${fmt(x.truy)}) × 0,5%</div></td><td class="n">−${fmt(x.cd)}</td></tr>
+   ${x.truy?`<tr class="m"><td>Truy thu BH</td><td class="n">−${fmt(x.truy)}</td></tr>`:''}
+   <tr class="m"><td>Ứng tiền ăn ca<div class="fx">Bằng tiền ăn giữa ca</div></td><td class="n">−${fmt(x.ung)}</td></tr>
+   <tr class="tot"><td>Tiền lương còn nhận</td><td class="n">${fmt(x.nhan)}</td></tr>
+  </tbody></table>
+  <h5>Tiền lương còn nhận 6 tháng gần nhất (triệu đồng)</h5>${spark}`;
+  const d=$('#pl-dr');d.classList.add('open');d.setAttribute('aria-hidden','false');
+  const i=ORDER.indexOf(id);d.querySelector('[data-nav="-1"]').disabled=i<=0;d.querySelector('[data-nav="1"]').disabled=i<0||i>=ORDER.length-1;
+}
+function closeSlip(){const d=$('#pl-dr');d.classList.remove('open');d.setAttribute('aria-hidden','true');st.slip=null}
+
+/* ================= 12. GẮN SỰ KIỆN ================= */
+function setGroup(k){st.g=k;$('#pl-grp').value=k;st.bin=null;renderAll()}
+function renderAll(){untip();renderKpis();renderTrend();renderDonut();renderTable();if(st.slip)openSlip(st.slip)}
+$('#pl-month').addEventListener('change',e=>{st.m=e.target.value;st.bin=null;renderAll()});
+$('#pl-grp').addEventListener('change',e=>setGroup(e.target.value));
+let qt;$('#pl-q').addEventListener('input',e=>{clearTimeout(qt);qt=setTimeout(()=>{st.q=e.target.value;st.bin=null;renderAll()},200)});
+$('#pl-t').addEventListener('click',e=>{const n=e.target.closest('.nm');if(n){openSlip(n.dataset.id);return}const g=e.target.closest('[data-g]');if(!g)return;const k=g.dataset.g;st.col.has(k)?st.col.delete(k):st.col.add(k);renderTable()});
+$('#pl-t').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-g],.nm')){e.preventDefault();e.target.click()}});
+$('#pl-toggle').addEventListener('click',()=>{if(st.col.size>=groupsShown().length)st.col.clear();else GROUPS.forEach(g=>st.col.add(g.k));renderTable()});
+$('#pl-dr').addEventListener('click',e=>{if(e.target.closest('[data-close]'))closeSlip();const nv=e.target.closest('[data-nav]');if(nv){const i=ORDER.indexOf(st.slip)+(+nv.dataset.nav);if(ORDER[i])openSlip(ORDER[i])}});
+document.addEventListener('keydown',e=>{if(!st.slip)return;if(e.key==='Escape')closeSlip();if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const i=ORDER.indexOf(st.slip)+(e.key==='ArrowRight'?1:-1);if(ORDER[i])openSlip(ORDER[i])}});
+function printAs(cls,prep){document.body.classList.add(cls);prep&&prep();window.print();document.body.classList.remove(cls)}
+$('#pl-print').addEventListener('click',()=>{const keep=new Set(st.col);printAs('pl-print-table',()=>{st.col.clear();renderTable()});st.col=keep;renderTable()});
+$('#pl-slip-print').addEventListener('click',()=>printAs('pl-print-slip'));
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(renderTrend,150)});
+renderAll();
+})();
+</script>
+</body>
+</html>
