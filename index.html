@@ -602,6 +602,18 @@ table.pl-t{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:
   @page{size:A4 landscape;margin:7mm}
 }
 
+.pl-seg2{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.pl-seg2 button{all:unset;cursor:pointer;padding:4px 10px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.pl-seg2 button+button{border-left:1px solid var(--line)}
+.pl-seg2 button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ok)}
+.pl-seg2 button:focus-visible{outline:2px solid var(--accent)}
+.pl-t thead th{font-weight:600}
+
+/* Hai khung Tải form / Tải file lên cao bằng nhau; ô kéo thả giãn theo chiều cao */
+.grid2.th-pair{align-items:stretch}
+.th-pair>.card{display:flex;flex-direction:column}
+.th-up .th-drop{flex:1;justify-content:center}
+
 </style>
 </head>
 <body>
@@ -952,7 +964,7 @@ function computeTC(m) {
   return { rows, pt, ptTotal: sumBy(pt.filter(x => x.kind === 'g'), x => x.tt + x.tl) };
 }
 // Nhóm mủ của Bảng hạch toán (theo sheet Hạch toán ld của file lương Chư Sê)
-const HT_CATS = [['3L', 'SVR3L + 10 Công ty'], ['10', 'SVR10 Công ty (gồm Ia Lâu, ngoại lệ, cán ủ)'], ['RSS', 'Mủ RSS'], ['KHAC', 'Lái máy + khác'], ['PAL', 'Đóng pallet'], ['TM10', 'Thu mua SVR10']];
+const HT_CATS = [['3L', 'SVR3L + 10 Công ty'], ['10', 'SVR10 Công ty'], ['RSS', 'Mủ RSS'], ['KHAC', 'Lái máy + khác'], ['PAL', 'Đóng pallet'], ['TM10', 'Thu mua SVR10']];
 const CACHE = {};
 const calc = (f, m) => { const k = f + '|' + m + '|' + THV; return CACHE[k] || (CACHE[k] = f === 'chuse' ? computeCS(m) : computeTC(m)); };
 
@@ -1013,6 +1025,7 @@ const groupsShown = () => FAC[S.f].groups.map(g => g.k).filter(k => !S.g || S.g 
 const baseRows = m => { const q = noMark(S.q); return calc(S.f, m).rows.filter(r => (!S.g || r.k === S.g) && (!q || noMark(r.name + ' ' + r.mst + ' ' + r.id).includes(q))); };
 const sumR = (rows, keys) => { const o = {}; keys.forEach(k => { o[k] = sumBy(rows, r => r[k]); }); return o; };
 const prevM = () => { const i = MONTHS.indexOf(S.m); return i > 0 ? MONTHS[i - 1] : null; };
+const holShort = m => (holOf(m).length ? 'Ngày lễ: ' + holOf(m).map(h => `${String(h.d).padStart(2, '0')}/${m.slice(5)} ×${h.r}`).join(', ') : '');
 const holInfo = m => holOf(m).length ? 'Ngày lễ: ' + holOf(m).map(h => `<b style="color:var(--hol)">${String(h.d).padStart(2, '0')}/${m.slice(5)} ${esc(h.name)} ×${h.r}</b>`).join(', ') : 'Tháng không có ngày lễ';
 
 function luongHTML() {
@@ -1038,8 +1051,8 @@ function luongHTML() {
   <section class="pl-sheet">
     <div class="pl-sheet-h">
       <div class="tabs" role="tablist" aria-label="Chọn bảng"><button role="tab" data-view="luong" aria-selected="${S.view === 'luong'}">Bảng lương</button><button role="tab" data-view="pt" aria-selected="${S.view === 'pt'}">Bảng phân toán</button>${S.f === 'chuse' ? `<button role="tab" data-view="ht" aria-selected="${S.view === 'ht'}">Bảng hạch toán</button>` : ''}</div>
-      <h3 id="pl-t-title"></h3><span class="muted grow" id="pl-t-info"></span>
-      <span class="small muted" id="pl-hint" hidden>Bảng rộng: cuộn ngang (Shift + lăn chuột) để xem cột bên phải</span><button class="lnk" id="pl-toggle" type="button">Thu gọn tất cả</button><button class="btn sm" id="pl-print" type="button">In bảng</button>
+      <span id="pl-sub"></span><span class="grow"></span><span id="pl-t-title" hidden></span><span class="small muted" id="pl-t-info"></span>
+      <button class="lnk" id="pl-toggle" type="button">Thu gọn tất cả</button><button class="btn sm primary" id="pl-xlsx" type="button">↓ Xuất Excel</button>
     </div>
     <div class="pl-sw"><div class="pl-scroll" data-sk="pl"><table class="pl-t" id="pl-t"></table></div></div>
   </section>
@@ -1050,12 +1063,12 @@ function luongAfter() {
   $('#pl-grp').addEventListener('change', e => setGroup(e.target.value));
   let qt; $('#pl-q').addEventListener('input', e => { clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value; renderKpis(); renderTrend(); renderDonut(); renderTable(); }, 200); });
   document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { S.view = b.dataset.view; document.querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-selected', x === b)); renderTable(); }));
-  $('#pl-t-info').addEventListener('click', e => { const b = e.target.closest('[data-htp]'); if (b) { S.htp = b.dataset.htp; renderTable(); } });
+  $('#pl-sub').addEventListener('click', e => { const b = e.target.closest('[data-htp]'); if (b) { S.htp = b.dataset.htp; renderTable(); } });
   $('#pl-t').addEventListener('click', e => { const n = e.target.closest('.nm'); if (n) { openSlip(n.dataset.id); return; } const g = e.target.closest('[data-g]'); if (!g) return; const k = g.dataset.g; S.col.has(k) ? S.col.delete(k) : S.col.add(k); renderTable(); });
   $('#pl-t').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-g],.nm')) { e.preventDefault(); e.target.click(); } });
   document.querySelector('.pl-scroll').addEventListener('scroll', e => { const sc = e.target; sc.parentNode.classList.toggle('more', sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 2); });
   $('#pl-toggle').addEventListener('click', () => { if (S.col.size >= groupsShown().length) S.col.clear(); else groupsShown().forEach(k => S.col.add(k)); renderTable(); });
-  $('#pl-print').addEventListener('click', () => { const keep = new Set(S.col); printAs('pl-print-table', () => { S.col.clear(); renderTable(); }); S.col = keep; renderTable(); });
+  $('#pl-xlsx').addEventListener('click', exportTable);
 }
 function setGroup(k) { S.g = k; const s = $('#pl-grp'); if (s) s.value = k; renderKpis(); renderTrend(); renderDonut(); renderTable(); }
 
@@ -1120,25 +1133,25 @@ let ORDER = [];
 function headLuong() {
   const mm = S.m.slice(5), yy = S.m.slice(0, 4);
   if (S.f === 'chuse') return `<thead>
-<tr><th class="s1" rowspan="3">STT</th><th class="s2" rowspan="3">Họ và tên</th><th rowspan="3">Mã<br>số thuế<br>cá nhân</th>
+<tr><th class="s1" rowspan="3">STT</th><th class="s2" rowspan="3">Họ và tên</th><th rowspan="3">Mã số thuế</th>
 <th colspan="2" rowspan="2">Lương sản phẩm</th><th colspan="2" rowspan="2" class="hh">Lương làm ngày lễ</th><th rowspan="3">Tổng lương</th>
-<th colspan="4">Tiền ăn ca</th><th rowspan="3">Tổng cộng<br>số tiền<br>thanh toán</th><th colspan="5">Các khoản khấu trừ</th><th rowspan="3">Tiền lương<br>còn nhận</th><th rowspan="3" class="ky">Ký nhận</th></tr>
-<tr><th colspan="2">Giữa ca</th><th colspan="2">Ca sáng</th><th rowspan="2">ĐPCĐ</th><th rowspan="2">Truy thu<br>BH</th><th rowspan="2">Ứng tiền<br>ăn ca</th><th>BHXH, YT, TN</th><th rowspan="2">Khoản<br>khác</th></tr>
-<tr><th>Công</th><th>Tiền</th><th class="hh">Công</th><th class="hh">Tiền</th><th>Công</th><th>Tiền</th><th>Công</th><th>Tiền</th><th>Tháng ${mm}/${yy}</th></tr></thead>`;
+<th colspan="4">Tiền ăn ca</th><th rowspan="3">Tổng thanh toán</th><th colspan="5">Khấu trừ</th><th rowspan="3">Tiền lương<br>còn nhận</th><th rowspan="3" class="ky">Ký nhận</th></tr>
+<tr><th colspan="2">Giữa ca</th><th colspan="2">Ca sáng</th><th rowspan="2">ĐPCĐ</th><th rowspan="2">Truy thu BH</th><th rowspan="2">Ứng ăn ca</th><th rowspan="2">BHXH, YT, TN</th><th rowspan="2">Khác</th></tr>
+<tr><th>Công</th><th>Tiền</th><th class="hh">Công</th><th class="hh">Tiền</th><th>Công</th><th>Tiền</th><th>Công</th><th>Tiền</th></tr></thead>`;
   return `<thead>
-<tr><th class="s1" rowspan="3">STT</th><th class="s2" rowspan="3">Họ và tên</th><th rowspan="3">Chức vụ</th><th rowspan="3">Số CCCD<br><span style="font-weight:400">(tạm: MST)</span></th><th rowspan="3" style="min-width:118px">Mức lương bao gồm<br>phụ cấp, chênh lệch,<br>bảo lưu</th>
-<th colspan="5">Lương chế biến mủ RSS1-3, SVR3L-5, SVR10-20<br><span style="font-weight:400">(lái xe: lương vận chuyển mủ)</span></th>
-<th colspan="4">Lương bốc xếp mủ<br><span style="font-weight:400">(tổng quy khô theo phiếu đội)</span></th><th colspan="2" rowspan="2">Lương vận chuyển<br>vật tư / thử việc</th>
-<th colspan="2" rowspan="2">Tổng tiền lương tháng</th><th colspan="2" rowspan="2">Tiền ăn ca</th><th rowspan="3">Tổng cộng</th>
-<th colspan="5" rowspan="2">Các khoản thu hộ</th><th rowspan="3">Số tiền<br>được nhận</th></tr>
-<tr><th colspan="3">Ngày làm việc bình thường</th><th colspan="2" class="hh">Ngày lễ</th><th colspan="2">Ngày bình thường</th><th colspan="2" class="hh">Ngày lễ</th></tr>
-<tr><th>Số công</th><th>Công</th><th>Thành tiền</th><th class="hh">Công</th><th class="hh">Thành tiền</th><th>Công</th><th>Thành tiền</th><th class="hh">Công</th><th class="hh">Thành tiền</th>
-<th>Công</th><th>Thành tiền</th><th>Công</th><th>Thành tiền</th><th>Số công</th><th>Thành tiền</th><th>BHXH,<br>YT, TN</th><th>Truy thu<br>BHXH, YT, TN</th><th>ĐPCĐ</th><th>Thu khác</th><th>Cộng</th></tr></thead>`;
+<tr><th class="s1" rowspan="3">STT</th><th class="s2" rowspan="3">Họ và tên</th><th rowspan="3">Chức vụ</th><th rowspan="3">Số CCCD</th><th rowspan="3">Mức lương</th>
+<th colspan="5">Lương chế biến / vận chuyển mủ</th>
+<th colspan="4">Lương bốc xếp mủ</th><th colspan="2" rowspan="2">Vận chuyển vật tư</th>
+<th colspan="2" rowspan="2">Tổng tiền lương</th><th colspan="2" rowspan="2">Tiền ăn ca</th><th rowspan="3">Tổng cộng</th>
+<th colspan="5" rowspan="2">Thu hộ</th><th rowspan="3">Thực nhận</th></tr>
+<tr><th colspan="3">Ngày thường</th><th colspan="2" class="hh">Ngày lễ</th><th colspan="2">Ngày thường</th><th colspan="2" class="hh">Ngày lễ</th></tr>
+<tr><th>Số công</th><th>Công</th><th>Tiền</th><th class="hh">Công</th><th class="hh">Tiền</th><th>Công</th><th>Tiền</th><th class="hh">Công</th><th class="hh">Tiền</th>
+<th>Công</th><th>Tiền</th><th>Công</th><th>Tiền</th><th>Số công</th><th>Tiền</th><th>BHXH</th><th>Truy thu</th><th>ĐPCĐ</th><th>Khác</th><th>Cộng</th></tr></thead>`;
 }
 function renderLuong() {
   const r = baseRows(S.m), cols = COLS[S.f], keys = cols.map(c => c[0]), F = FAC[S.f], cs = S.f === 'chuse';
   $('#pl-t-title').textContent = `Bảng thanh toán tiền lương tháng ${mLbl(S.m)}`;
-  $('#pl-t-info').innerHTML = holInfo(S.m);
+  $('#pl-t-info').innerHTML = holShort(S.m); $('#pl-sub').innerHTML = '';
   const cells = o => cols.map(([k, f, h]) => { const v = o[k]; return `<td class="n${k === 'nhan' ? ' pay' : ''}${h && v ? ' hol' : ''}">${Math.abs(v) > 1e-9 ? f(v) : ''}</td>`; }).join('') + (cs ? '<td class="ky"></td>' : '');
   const pre = cs ? 1 : 2;
   let body = '', stt = 0; ORDER = [];
@@ -1153,14 +1166,14 @@ function renderLuong() {
   $('#pl-t').innerHTML = r.length ? headLuong() + '<tbody>' + body + '</tbody>' : '<tbody><tr><td class="empty">Không có người nào khớp bộ lọc.</td></tr></tbody>';
   $('#pl-note').innerHTML = cs
     ? 'Chế biến (gồm CB mủ RSS 7,0): mỗi ngày chia quỹ theo công người có mặt; cán ủ chia theo nhóm N1/N2/N3. Đánh đông, CKCĐ + NT, chà thùng, xe nâng: quỹ tổ chia theo công cả tháng. Lái xe: quy khô từng người chở × định mức (Ia Lâu 1,2 / 0,46; mủ RSS 0,8 / 1,2). Ngày lễ: tấn ngày lễ × định mức × đơn giá × hệ số lễ, chia đều cho người có công ngày lễ; công lễ chưa nhân hệ số. ĐPCĐ = (Tổng lương − BHXH − Truy thu) × 0,5%. Ứng tiền ăn ca = tiền ăn giữa ca.'
-    : 'Đánh đông – cán, gia công nhiệt, thành phẩm, PX SVR10-20: công quy đổi = số công chấm × hệ số tổ (hệ số = công khoán của tổ ÷ tổng công chấm), thành tiền = công quy đổi × 211.634. Lái xe: tấn quy khô theo phiếu đội × 251.315 (ngày lễ nhân hệ số), cột công = tấn × 1,25. Bốc xếp: mỗi ngày tổng quy khô lái xe chở × 0,2 công/tấn, chia cho người PX SVR10-20 có công trong ngày theo nam 0,6 · nữ 0,4. Vận chuyển vật tư = mức lương (thử việc × 85%) ÷ 26 × công. Ăn ca chỉ tính ngày đủ 1 công. ĐPCĐ = (Tổng cộng − Ăn ca − BHXH) × 0,5%.';
+    : 'Lái xe: cột Lương chế biến là lương vận chuyển mủ. Số CCCD tạm dùng mã số thuế. Đánh đông – cán, gia công nhiệt, thành phẩm, PX SVR10-20: công quy đổi = số công chấm × hệ số tổ (hệ số = công khoán của tổ ÷ tổng công chấm), thành tiền = công quy đổi × 211.634. Lái xe: tấn quy khô theo phiếu đội × 251.315 (ngày lễ nhân hệ số), cột công = tấn × 1,25. Bốc xếp: mỗi ngày tổng quy khô lái xe chở × 0,2 công/tấn, chia cho người PX SVR10-20 có công trong ngày theo nam 0,6 · nữ 0,4. Vận chuyển vật tư = mức lương (thử việc × 85%) ÷ 26 × công. Ăn ca chỉ tính ngày đủ 1 công. ĐPCĐ = (Tổng cộng − Ăn ca − BHXH) × 0,5%.';
 }
 /* Bảng phân toán (trước là phiếu nghiệm thu) */
 function renderPt() {
   const c = calc(S.f, S.m), F = RT(S.f, S.m), hol = holOf(S.m);
   $('#pl-t-title').textContent = `Bảng phân toán tiền lương sản phẩm tháng ${mLbl(S.m)}`;
   const totPay = sumBy(c.rows, r => r.TL), diff = c.ptTotal - totPay;
-  $('#pl-t-info').innerHTML = `Định mức, đơn giá theo Danh mục › Định mức & đơn giá áp dụng tháng ${mLbl(S.m)} · ` + (Math.abs(diff) < 1 ? '<span class="chip ok">Khớp tổng tiền lương của bảng lương</span>' : `<span class="chip bad">Lệch bảng lương ${fmt(diff)} đ</span>`);
+  $('#pl-sub').innerHTML = ''; $('#pl-t-info').innerHTML = Math.abs(diff) < 1 ? '<span class="okc" title="Tổng phân toán bằng tổng tiền lương của bảng lương">✓ Khớp bảng lương</span>' : `<span class="bad">Lệch bảng lương ${fmt(diff)} đ</span>`;
   const dmTxt = o => o.dmLbl != null ? o.dmLbl : (o.dm ? fdm(o.dm) : '');
   const row = o => {
     const dvt = o.dvt || 'Tấn';
@@ -1172,8 +1185,8 @@ function renderPt() {
   };
   const G = c.pt.filter(x => x.kind === 'g');
   $('#pl-t').innerHTML = `<thead>
-<tr><th class="s1" rowspan="2">STT</th><th class="s2" rowspan="2" style="min-width:320px">Tên sản phẩm (công việc)</th><th rowspan="2">ĐVT</th><th colspan="4">Tiền lương ngày làm việc bình thường</th><th colspan="4" class="hh">${hol.length ? 'Tiền lương ngày lễ ' + esc(holTxt(S.m)) : 'Tiền lương ngày lễ (tháng không có ngày lễ)'}</th><th rowspan="2">Tổng tiền lương<br>(đồng)</th></tr>
-<tr><th>Sản lượng</th><th>Đ.mức<br>công/tấn</th><th>Công</th><th>Thành tiền<br>(đồng)</th><th class="hh">Sản lượng</th><th class="hh">Đ.mức<br>công/tấn</th><th class="hh">Công</th><th class="hh">Thành tiền<br>(đồng)</th></tr>
+<tr><th class="s1" rowspan="2">STT</th><th class="s2" rowspan="2" style="min-width:300px">Công việc</th><th rowspan="2">ĐVT</th><th colspan="4">Ngày thường</th><th colspan="4" class="hh">Ngày lễ</th><th rowspan="2">Tổng tiền lương</th></tr>
+<tr><th>Sản lượng</th><th>Định mức</th><th>Công</th><th>Tiền</th><th class="hh">Sản lượng</th><th class="hh">Định mức</th><th class="hh">Công</th><th class="hh">Tiền</th></tr>
 </thead><tbody>${c.pt.map(row).join('')}<tr class="tot"><td class="s1"></td><td class="s2">CỘNG</td><td></td><td></td><td></td><td class="n">${fc(sumBy(G, x => x.ct))}</td><td class="n">${fmt(sumBy(G, x => x.tt))}</td><td></td><td></td><td class="n">${fc(sumBy(G, x => x.cl))}</td><td class="n">${fmt(sumBy(G, x => x.tl))}</td><td class="n">${fmt(c.ptTotal)}</td></tr></tbody>`;
   $('#pl-note').innerHTML = S.f === 'chuse'
     ? `Thành tiền = sản lượng × định mức × đơn giá của phân hệ (${fmt(F.DG)} đ); ngày lễ nhân thêm hệ số lễ. Nguồn sản lượng trong app: Giao nhận mủ › Tổng tháng theo lái xe (quy khô), phiếu nhập kho thành phẩm theo ngày (chế biến, CKCĐ + NT, chà thùng, xe nâng), Cán ủ › sản lượng ngày theo nhóm, Xe nâng › lái máy xuất hàng nhập cuối tháng. Mục IV: CB mủ RSS ${fdm(F.DM.cbRSS)}; vận chuyển mủ RSS Công ty ${fdm(F.DM.lxR)}, Ia Lâu ${fdm(F.DM.ilR)} (tấn RSS chia cho lái xe theo phần mủ nước từng xe chở). Không tính lái máy xuống mủ thu mua ở trạm cân.`
@@ -1198,12 +1211,12 @@ function renderHt() {
   });
   const T = tot(r), pay = sumBy(r, x => (isL ? x.le : x.sp)), diff = T.T.v - pay;
   $('#pl-t').innerHTML = r.length ? `<thead>
-<tr><th class="s1" rowspan="2">STT</th><th class="s2" rowspan="2">Họ và tên</th>${cats.map(([, l]) => `<th colspan="2"${isL ? ' class="hh"' : ''}>${esc(l)}</th>`).join('')}<th colspan="2">Tổng cộng${isL ? ' ngày lễ' : ''}</th></tr>
+<tr><th class="s1" rowspan="2">STT</th><th class="s2" rowspan="2">Họ và tên</th>${cats.map(([, l]) => `<th colspan="2"${isL ? ' class="hh"' : ''}>${esc(l)}</th>`).join('')}<th colspan="2">Tổng cộng</th></tr>
 <tr>${cats.concat([['T']]).map(() => '<th>Công</th><th>Tiền</th>').join('')}</tr></thead><tbody>${body}<tr class="tot"><td class="s1"></td><td class="s2">TỔNG CỘNG</td>${cells(T)}</tr></tbody>`
     : '<tbody><tr><td class="empty">Không có người nào khớp bộ lọc.</td></tr></tbody>';
-  $('#pl-t-info').innerHTML = (hol.length ? `<span class="tabs" style="display:inline-flex;vertical-align:middle"><button data-htp="n" aria-selected="${!isL}">Ngày thường</button><button data-htp="l" aria-selected="${isL}">Ngày lễ ${esc(holOf(S.m).map(h => String(h.d).padStart(2, '0') + '/' + S.m.slice(5) + ' ×' + h.r).join(', '))}</button></span> ` : 'Tháng không có ngày lễ · ')
-    + (Math.abs(diff) < 1 ? `<span class="chip ok">Khớp ${isL ? 'lương ngày lễ' : 'lương sản phẩm'} của bảng lương</span>` : `<span class="chip bad">Lệch bảng lương ${fmt(diff)} đ</span>`);
-  $('#pl-note').innerHTML = `Mỗi ô = phần công, tiền của người đó trong từng nhóm mủ, cộng từ các phân hệ người đó làm (chế biến, cán ủ, đánh đông, CKCĐ + NT, chà thùng, xe nâng, lái xe). Cột công là công quy đổi = tấn × định mức; tiền = công × đơn giá phân hệ${isL ? ' × hệ số lễ' : ''}. Tổng cộng của từng người bằng cột ${isL ? '"Lương làm ngày lễ"' : '"Lương sản phẩm"'} trên bảng lương. SVR3L thu mua không tách cột riêng vì phiếu nhập kho đang gộp vào dây chuyền 2 tấn.`;
+  $('#pl-sub').innerHTML = hol.length ? `<span class="pl-seg2"><button data-htp="n" aria-pressed="${!isL}">Ngày thường</button><button data-htp="l" aria-pressed="${isL}">Ngày lễ</button></span>` : '';
+  $('#pl-t-info').innerHTML = Math.abs(diff) < 1 ? '<span class="okc" title="Tổng hạch toán bằng cột lương của bảng lương">✓ Khớp bảng lương</span>' : `<span class="bad">Lệch bảng lương ${fmt(diff)} đ</span>`;
+  $('#pl-note').innerHTML = `Mỗi ô = phần công, tiền của người đó trong từng nhóm mủ, cộng từ các phân hệ người đó làm (chế biến, cán ủ, đánh đông, CKCĐ + NT, chà thùng, xe nâng, lái xe). Cột SVR10 Công ty gồm cả Ia Lâu, ngoại lệ, cán ủ. Cột công là công quy đổi = tấn × định mức; tiền = công × đơn giá phân hệ${isL ? ' × hệ số lễ' : ''}. Tổng cộng của từng người bằng cột ${isL ? '"Lương làm ngày lễ"' : '"Lương sản phẩm"'} trên bảng lương. SVR3L thu mua không tách cột riêng vì phiếu nhập kho đang gộp vào dây chuyền 2 tấn.`;
 }
 function renderTable() {
   $('#pl-toggle').hidden = S.view === 'pt';
@@ -1213,7 +1226,58 @@ function renderTable() {
   $('#pl-toggle').textContent = S.col.size >= groupsShown().length ? 'Mở rộng tất cả' : 'Thu gọn tất cả';
   const sc = document.querySelector('.pl-scroll'), more = sc.scrollWidth > sc.clientWidth + 2;
   sc.parentNode.classList.toggle('more', more && sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 2);
-  $('#pl-hint').hidden = !more;
+}
+
+/* Xuất Excel bảng đang xem (Bảng lương / Bảng phân toán / Bảng hạch toán): đủ mọi tổ, đúng bộ lọc, số giữ dạng số */
+function exportTable() {
+  const X = window.XLSX; if (!X) { toast('Không tải được thư viện Excel', 'bad'); return; }
+  const keep = new Set(S.col); S.col.clear(); renderTable();
+  const t = $('#pl-t').cloneNode(true), title = $('#pl-t-title').textContent;
+  S.col = keep; renderTable();
+  t.querySelectorAll('.tg, .pl-wt, .tabs, button').forEach(x => x.remove());
+  t.querySelectorAll('a').forEach(a => a.replaceWith(document.createTextNode(a.textContent)));
+  t.querySelectorAll('td, th').forEach(c => {
+    const s = c.textContent.replace(/\s+/g, ' ').trim(); c.textContent = s;
+    if (c.tagName === 'TD' && /^−?-?[\d.]+(,\d+)?$/.test(s) && !(/^0\d/.test(s))) {
+      const neg = /^[−-]/.test(s), dec = (s.split(',')[1] || '').length, v = +s.replace(/^[−-]/, '').replace(/\./g, '').replace(',', '.');
+      if (!isNaN(v)) { c.setAttribute('data-t', 'n'); c.setAttribute('data-v', String(neg ? -v : v)); c.setAttribute('data-z', dec ? '#,##0.' + '0'.repeat(dec) : '#,##0'); }
+    } else { c.setAttribute('data-t', 's'); }
+  });
+  const F = FAC[S.f], head = [['CÔNG TY TNHH MTV CAO SU CHƯ SÊ'], [F.full.toLocaleUpperCase('vi-VN')], [title.toLocaleUpperCase('vi-VN')], []];
+  // bảng HTML → ô Excel (giữ ô gộp rowspan/colspan, số là số)
+  const ws = X.utils.aoa_to_sheet(head), merges = [], busy = {}; let maxC = 0;
+  [...t.querySelectorAll('tr')].forEach((tr, ri) => {
+    const r = 4 + ri; let c = 0;
+    [...tr.children].forEach(td => {
+      while (busy[r + ',' + c]) c++;
+      const rs = +td.getAttribute('rowspan') || 1, cs = +td.getAttribute('colspan') || 1, num = td.getAttribute('data-t') === 'n';
+      const cell = num ? { t: 'n', v: +td.getAttribute('data-v'), z: td.getAttribute('data-z') } : { t: 's', v: td.textContent };
+      ws[X.utils.encode_cell({ r, c })] = cell;
+      for (let i = 0; i < rs; i++) for (let j = 0; j < cs; j++) busy[(r + i) + ',' + (c + j)] = 1;
+      if (rs > 1 || cs > 1) merges.push({ s: { r, c }, e: { r: r + rs - 1, c: c + cs - 1 } });
+      c += cs; maxC = Math.max(maxC, c);
+    });
+  });
+  ws['!merges'] = merges; ws['!ref'] = X.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: 3 + t.querySelectorAll('tr').length, c: maxC - 1 } });
+  const rg = X.utils.decode_range(ws['!ref']), nh = t.querySelectorAll('thead tr').length, rows = [...t.querySelectorAll('tr')];
+  const bd = { style: 'thin', color: { rgb: '7F7F7F' } }, B = { top: bd, bottom: bd, left: bd, right: bd }, font = o => ({ name: 'Times New Roman', sz: 11, ...o });
+  for (let r = 4; r <= rg.e.r; r++) {
+    const tr = rows[r - 4], isH = r - 4 < nh, cls = tr ? tr.className : '';
+    for (let c = 0; c <= rg.e.c; c++) {
+      const ref = X.utils.encode_cell({ r, c }); const cell = ws[ref] || (ws[ref] = { t: 's', v: '' });
+      cell.s = { border: B, font: font({ bold: isH || /\b(g|g2|tot)\b/.test(cls) }), alignment: isH ? { horizontal: 'center', vertical: 'center', wrapText: true } : { vertical: 'center' } };
+      if (isH) cell.s.fill = { fgColor: { rgb: 'E2EFDA' } }; else if (/\btot\b/.test(cls)) cell.s.fill = { fgColor: { rgb: 'D5E8DE' } }; else if (/\bg\b/.test(cls)) cell.s.fill = { fgColor: { rgb: 'EEF5F1' } };
+      if (cell.z) cell.s.numFmt = cell.z;
+    }
+  }
+  [0, 1].forEach(r => { const c = ws[X.utils.encode_cell({ r, c: 0 })]; if (c) c.s = { font: font({ bold: true }) }; });
+  const tc = ws.A3; if (tc) tc.s = { font: font({ bold: true, sz: 14 }) };
+  ws['!rows'] = []; for (let i = 0; i < nh; i++) ws['!rows'][4 + i] = { hpt: 30 };
+  ws['!cols'] = Array.from({ length: rg.e.c + 1 }, (_, i) => ({ wch: i === 0 ? 6 : i === 1 ? 28 : 13 }));
+  const wb = X.utils.book_new(), kind = { luong: 'bang-luong', pt: 'bang-phan-toan', ht: 'bang-hach-toan' + (S.htp === 'l' ? '-ngay-le' : '') }[S.view];
+  X.utils.book_append_sheet(wb, ws, kind.slice(0, 31));
+  const name = `${kind}-${S.f === 'chuse' ? 'chu-se' : 'thanh-cong'}-${S.m.slice(5)}-${S.m.slice(0, 4)}.xlsx`;
+  X.writeFile(wb, name); toast('Đã xuất ' + name);
 }
 
 /* Phiếu lương từng người + tài khoản nhận tiền */
@@ -1285,23 +1349,22 @@ let rsz; addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(
 const TH_FIELDS = {
   // Theo sheet BH của file lương Chư Sê: (Hệ số lương + PC khu vực + PC trách nhiệm + HSL × % thâm niên vượt khung) × 3.700.000 × 10,5%
   chuse: [
-    { k: 'hsl', h: 'Hệ số lương', t: 'num', z: '0.00', inp: 1, w: 9, m: ['he so luong'] },
+    { k: 'hsl', h: 'Hệ số lương', s: 'Hệ số lương', t: 'num', z: '0.00', inp: 1, w: 9, m: ['he so luong'] },
     { k: 'pckv', h: 'PC khu vực', t: 'num', z: '0.00', inp: 1, w: 9, m: ['pc khu vuc', 'phu cap khu vuc'] },
     { k: 'pctn', h: 'PC trách nhiệm', t: 'num', z: '0.00', inp: 1, w: 10, m: ['pc trach nhiem', 'phu cap trach nhiem'] },
-    { k: 'tnvk', h: '% thâm niên vượt khung', t: 'pct', z: '0%', inp: 1, w: 11, m: ['tham nien'] },
-    { k: 'mdong', h: 'Mức lương đóng BH', t: 'money', calc: 1, w: 13, m: ['muc luong dong', 'muc dong'] },
-    { k: 'bh', h: 'BHXH, YT, TN tháng', t: 'money', calc: 1, w: 13, m: ['bhxh'] },
-    { k: 'truy', h: 'Truy thu BH', t: 'money', inp: 1, w: 12, m: ['truy thu'] },
-    { k: 'khac', h: 'Khoản thu khác', t: 'money', inp: 1, w: 12, m: ['thu khac', 'khoan khac'] },
+    { k: 'tnvk', h: '% thâm niên vượt khung', s: '% TNVK', t: 'pct', z: '0%', inp: 1, w: 11, m: ['tham nien'] },
+    { k: 'bh', h: 'BHXH, YT, TN tháng', s: 'BHXH', t: 'money', inp: 1, w: 13, m: ['bhxh'] },
+    { k: 'truy', h: 'Truy thu BH', s: 'Truy thu', t: 'money', inp: 1, w: 12, m: ['truy thu'] },
+    { k: 'khac', h: 'Khoản thu khác', s: 'Thu khác', t: 'money', inp: 1, w: 12, m: ['thu khac', 'khoan khac'] },
     { k: 'note', h: 'Ghi chú', t: 'text', inp: 1, w: 24, m: ['ghi chu'] },
   ],
   // Theo sheet CN trưc tiep có ăn / LX của file lương Thành Công: BHXH = mức lương × 10,5%; thử việc dùng cho lương vận chuyển vật tư × 85%
   thanhcong: [
-    { k: 'luong', h: 'Mức lương bao gồm phụ cấp, chênh lệch, bảo lưu', t: 'money', inp: 1, w: 16, m: ['muc luong'] },
-    { k: 'tv', h: 'Thử việc (ghi x)', t: 'flag', inp: 1, w: 9, m: ['thu viec'] },
-    { k: 'bh', h: 'BHXH, YT, TN', t: 'money', calc: 1, w: 13, m: ['bhxh'] },
-    { k: 'truy', h: 'Truy thu BHXH, YT, TN', t: 'money', inp: 1, w: 13, m: ['truy thu'] },
-    { k: 'khac', h: 'Khoản thu khác', t: 'money', inp: 1, w: 12, m: ['thu khac', 'khoan khac'] },
+    { k: 'luong', h: 'Mức lương bao gồm phụ cấp, chênh lệch, bảo lưu', s: 'Mức lương', t: 'money', inp: 1, w: 16, m: ['muc luong'] },
+    { k: 'tv', h: 'Thử việc (ghi x)', s: 'Thử việc', t: 'flag', inp: 1, w: 9, m: ['thu viec'] },
+    { k: 'bh', h: 'BHXH, YT, TN', s: 'BHXH', t: 'money', inp: 1, w: 13, m: ['bhxh'] },
+    { k: 'truy', h: 'Truy thu BHXH, YT, TN', s: 'Truy thu', t: 'money', inp: 1, w: 13, m: ['truy thu'] },
+    { k: 'khac', h: 'Khoản thu khác', s: 'Thu khác', t: 'money', inp: 1, w: 12, m: ['thu khac', 'khoan khac'] },
     { k: 'note', h: 'Ghi chú', t: 'text', inp: 1, w: 24, m: ['ghi chu'] },
   ],
 };
@@ -1324,24 +1387,20 @@ function buildForm(f, m, prefill) {
   put(R, 0, ('Nhà máy chế biến cao su ' + F.name).toLocaleUpperCase('vi-VN'), st.b); merges.push({ s: { r: R, c: 0 }, e: { r: R, c: 4 } }); R++; R++;
   line('BẢNG THEO DÕI BẢO HIỂM VÀ CÁC KHOẢN THU HỘ', st.t);
   line('Tháng ' + mLbl(m), { font: font({ bold: true }), alignment: { horizontal: 'center' } });
-  line('Điền vào các ô nền vàng. Giữ nguyên cột Mã NV và tiêu đề cột; không thêm, xóa hay đổi tên cột. Cột BHXH tự tính theo công thức, có thể ghi đè nếu số thực thu khác. Lưu file rồi tải lên ở tab Các khoản thu hộ của app.', st.i);
+  line('Điền vào các ô nền vàng (file không có công thức, cần thì tự viết thêm). Giữ nguyên cột Mã NV và tiêu đề cột; không thêm, xóa hay đổi tên cột. Lưu file rồi tải lên ở tab Các khoản thu hộ của app, chọn đúng tháng.', st.i);
   ws['!rows'] = []; ws['!rows'][R - 1] = { hpt: 32 };
-  const P = {};
-  if (cs) { put(R, 0, 'Mức lương cơ sở đóng BH', st.n); merges.push({ s: { r: R, c: 0 }, e: { r: R, c: 2 } }); put(R, 3, F.BH_BASE, st.in, '#,##0'); P.base = '$D$' + (R + 1); R++; }
-  put(R, 0, 'Tỷ lệ NLĐ đóng (8% + 1,5% + 1%)', st.n); merges.push({ s: { r: R, c: 0 }, e: { r: R, c: 2 } }); put(R, 3, F.BH_RATE, st.in, '0.0%'); P.rate = '$D$' + (R + 1); R++; R++;
+  R++;
   cols.forEach((c, i) => put(R, i, c.h, st.h)); ws['!rows'][R] = { hpt: 46 }; R++;
-  cols.forEach((c, i) => put(R, i, c.k === 'mdong' ? `(${i - 4}) = (1 + 2 + 3 + 1 × 4) × mức cơ sở` : c.k === 'bh' ? (cs ? `(${i - 4}) = (${i - 5}) × tỷ lệ` : `(${i - 4}) = (1) × tỷ lệ; thử việc = 0`) : i < 5 ? '' : `(${i - 4})`, st.no)); R++;
-  const first = R, cur = thGet(f, m), ix = k => cols.findIndex(c => c.k === k);
+  cols.forEach((c, i) => put(R, i, i < 5 ? '' : `(${i - 4})`, st.no)); R++;
+  const cur = thGet(f, m), ix = k => cols.findIndex(c => c.k === k);
   let stt = 0;
   F.groups.forEach((g, gi) => {
     put(R, 0, ROMAN[gi], st.g); put(R, 1, '', st.g); put(R, 2, g.name, st.g); for (let c = 3; c < N; c++) put(R, c, '', st.g); R++;
     EMP[f].filter(e => e.k === g.k).forEach(e => {
-      stt++; const v = prefill ? (cur.rows[e.id] || {}) : {}, r1 = R + 1, L = k => colL(ix(k)) + r1;
+      stt++; const v = prefill ? (cur.rows[e.id] || {}) : {};
       put(R, 0, stt, st.c); put(R, 1, e.id, st.c); put(R, 2, e.name, st.c); put(R, 3, e.mst, st.c); put(R, 4, g.name, st.c);
       fields.forEach(fd => {
         const c = ix(fd.k);
-        if (fd.k === 'mdong') return put(R, c, prefill ? Math.round(mdongOf(v, m)) : 0, st.c, '#,##0', `(${L('hsl')}+${L('pckv')}+${L('pctn')}+${L('hsl')}*${L('tnvk')})*${P.base}`);
-        if (fd.k === 'bh') return put(R, c, prefill ? thBH(f, v, m) : 0, st.c, '#,##0', cs ? `ROUND(${L('mdong')}*${P.rate},0)` : `IF(${L('tv')}="x",0,ROUND(${L('luong')}*${P.rate},0))`);
         const val = v[fd.k];
         if (fd.t === 'flag') return put(R, c, val ? 'x' : '', Object.assign({}, st.in, { alignment: { horizontal: 'center' } }));
         if (fd.t === 'text') return put(R, c, val || '', st.in);
@@ -1350,9 +1409,7 @@ function buildForm(f, m, prefill) {
       R++;
     });
   });
-  put(R, 0, '', st.tot); put(R, 1, '', st.tot); put(R, 2, 'TỔNG CỘNG', st.tot); put(R, 3, '', st.tot); put(R, 4, '', st.tot);
-  fields.forEach(fd => { const c = ix(fd.k); if (fd.t === 'money') put(R, c, 0, st.tot, '#,##0', `SUM(${colL(c)}${first + 1}:${colL(c)}${R})`); else put(R, c, '', st.tot); });
-  R += 2;
+  R += 1;
   const sign = [[1, 'Người lập biểu'], [Math.max(5, N - 3), 'Kế toán trưởng']];
   sign.forEach(([c, t]) => { put(R, c, t, { font: font({ bold: true }), alignment: { horizontal: 'center' } }); put(R + 1, c, '(Ký, ghi rõ họ tên)', { font: font({ italic: true }), alignment: { horizontal: 'center' } }); });
   R += 2;
@@ -1360,12 +1417,13 @@ function buildForm(f, m, prefill) {
   const guide = X.utils.aoa_to_sheet([
     ['Hướng dẫn điền form thu hộ – ' + F.full + ' – tháng ' + mLbl(m)], [''],
     ['1. Mỗi dòng là một người theo danh mục nhân viên của app (cột Mã NV). Không đổi Mã NV; người không có trong danh sách thì thêm ở Danh mục › Nhân viên trước rồi tải lại form.'],
-    ...(cs ? [['2. Nhập Hệ số lương, PC khu vực, PC trách nhiệm, % thâm niên vượt khung (ví dụ 5%). Mức đóng và BHXH tự tính.'], ['3. Mức lương cơ sở đóng BH và tỷ lệ 10,5% ở đầu sheet, sửa một chỗ áp cho cả bảng.']]
-      : [['2. Nhập Mức lương bao gồm phụ cấp, chênh lệch, bảo lưu; người thử việc ghi x (lương vận chuyển vật tư tính 85%). BHXH tự tính = mức lương × 10,5%; người thử việc để 0, chỉ ghi số nếu người đó có đóng bảo hiểm.'], ['3. Tỷ lệ 10,5% ở đầu sheet, sửa một chỗ áp cho cả bảng.']]),
+    ['2. File không có công thức. Cột BHXH, YT, TN ghi số tiền thu của tháng; cần tính thì tự viết công thức trong file, app chỉ đọc giá trị.'],
+    ...(cs ? [['3. Hệ số lương, PC khu vực, PC trách nhiệm, % thâm niên vượt khung (ví dụ 5%) để đối chiếu; nếu để trống cột BHXH mà có hệ số thì app tự tính = (HSL + PCKV + PCTN + HSL × %TNVK) × ' + fmt(F.BH_BASE) + ' × ' + pct(F.BH_RATE * 100) + ' và báo cảnh báo.']]
+      : [['3. Mức lương bao gồm phụ cấp, chênh lệch, bảo lưu dùng cho lương vận chuyển vật tư; người thử việc ghi x (tính ' + pct(F.TV * 100) + '). Nếu để trống cột BHXH mà có mức lương thì app tự tính = mức lương × ' + pct(F.BH_RATE * 100) + ' (thử việc = 0) và báo cảnh báo.']]),
     ['4. Truy thu và Khoản thu khác ghi số tiền (đồng); lý do ghi ở cột Ghi chú.'],
-    ['5. Lưu file (giữ định dạng .xlsx), vào tab Các khoản thu hộ › Tải file đã điền lên. App kiểm tra lỗi trước khi cập nhật vào báo cáo lương.'],
+    ['5. Mỗi tháng một file. Tải lên ở tab Các khoản thu hộ, chọn tháng; lần tải sau ghi đè toàn bộ số của tháng đó.'],
     ['6. Người có trong danh mục nhưng không có trong file, hoặc để trống thông tin bảo hiểm, sẽ không bị trừ bảo hiểm (bỏ qua).'],
-  ]); guide['!cols'] = [{ wch: 120 }];
+]); guide['!cols'] = [{ wch: 120 }];
   const meta = X.utils.aoa_to_sheet([['factory', f], ['month', m], ['form', 'thu-ho-v1']]);
   const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, 'Thu ho'); X.utils.book_append_sheet(wb, guide, 'Huong dan'); X.utils.book_append_sheet(wb, meta, '_meta');
   wb.Workbook = { Sheets: [{ Hidden: 0 }, { Hidden: 0 }, { Hidden: 1 }] };
@@ -1393,7 +1451,7 @@ function parseForm(buf, fileName) {
   const meta = wb.Sheets._meta ? Object.fromEntries(X.utils.sheet_to_json(wb.Sheets._meta, { header: 1 }).map(r => [r[0], r[1]])) : {};
   if (meta.factory && meta.factory !== f) { out.fatal = `File này là form của ${FAC[meta.factory] ? FAC[meta.factory].full : meta.factory}, nhà máy đang chọn là ${F.full}. Đổi nhà máy ở thanh trên rồi tải lại.`; return out; }
   if (!meta.factory) out.warn.push('File không có thông tin nhà máy (không phải form tải từ app). App vẫn đọc theo tiêu đề cột.');
-  if (meta.month && meta.month !== S.m) out.warn.push(`Form của tháng ${mLbl(meta.month)}, số sẽ được cập nhật vào tháng đang chọn ${mLbl(S.m)}.`);
+  if (meta.month && meta.month !== S.m) out.warn.push(`File này là form tháng ${mLbl(meta.month)}, nhưng đang chọn tháng ${mLbl(S.m)}. Nếu cập nhật, số sẽ ghi vào tháng ${mLbl(S.m)}. Muốn ghi vào tháng ${mLbl(meta.month)} thì bấm Bỏ file, đổi tháng ở thanh trên rồi tải lại.`);
   const ws = wb.Sheets['Thu ho'] || wb.Sheets[wb.SheetNames[0]];
   const aoa = X.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
   const hr = aoa.findIndex(r => r && r.some(c => noMark(c) === 'ma nv'));
@@ -1426,7 +1484,7 @@ function parseForm(buf, fileName) {
     });
     // BHXH: lấy số trong file; ô công thức chưa có giá trị thì tự tính
     const calcBh = thBH(f, row.v, S.m), hasIn = f === 'chuse' ? row.v.hsl != null : row.v.luong != null;
-    if (row.v.bh == null) row.v.bh = hasIn ? calcBh : 0;
+    if (row.v.bh == null) { row.v.bh = hasIn ? calcBh : 0; if (hasIn && calcBh) row.warns.push(`Để trống BHXH, app tự tính ${fmt(calcBh)} theo Danh mục`); }
     else if (row.v.tv && row.v.bh > 0) row.warns.push(`Thử việc có ghi BHXH ${fmt(row.v.bh)}, giữ số trong file`);
     else if (hasIn && Math.abs(row.v.bh - calcBh) > 1) row.warns.push(`BHXH ${fmt(row.v.bh)} khác công thức (${fmt(calcBh)}), giữ số trong file`);
     if (!hasIn && !row.v.bh) row.warns.push(f === 'chuse' ? 'Không có thông tin bảo hiểm, bỏ qua' : 'Không có mức lương: bỏ qua bảo hiểm, lương vận chuyển vật tư = 0');
@@ -1442,23 +1500,24 @@ function applyUpload() {
   const rows = {}, used = new Set();
   u.rows.forEach(r => { if (r.errs.length || used.has(r.id)) return; used.add(r.id); rows[r.id] = Object.assign({ truy: 0, khac: 0, note: '' }, r.v); });
   EMP[u.f].forEach(e => { if (!rows[e.id]) rows[e.id] = { bh: 0, truy: 0, khac: 0, note: '' }; });
-  TH[u.f] = TH[u.f] || {}; TH[u.f][S.m] = { src: 'file', file: u.file, at: Date.now(), rows }; thSave();
+  TH[u.f] = TH[u.f] || {}; const prev = TH[u.f][S.m]; TH[u.f][S.m] = { src: 'file', file: u.file, at: Date.now(), count: (prev && prev.src === 'file' ? (prev.count || 1) : 0) + 1, rows }; thSave();
   toast(`Đã cập nhật thu hộ tháng ${mLbl(S.m)} cho ${used.size} người`); S.up = null; render();
 }
 
 function thuHoHTML() {
   const F = FAC[S.f], fields = TH_FIELDS[S.f], cur = thGet(S.f, S.m), cs = S.f === 'chuse', u = S.up && S.up.f === S.f && S.up.m === S.m ? S.up : null;
   const stage = u ? 3 : cur.src === 'file' ? 4 : 1;
-  const steps = [['1', 'Tải form của tháng', 'Mẫu riêng của ' + F.full + ', có sẵn danh sách người'], ['2', 'Điền trên Excel', 'Nhập vào các ô nền vàng'], ['3', 'Tải file lên và kiểm tra', 'App báo lỗi từng dòng trước khi cập nhật'], ['4', 'Cập nhật vào báo cáo lương', 'Cột thu hộ của bảng lương lấy số mới']];
-  const chips = TH_FIX.slice(1).map(c => `<span class="chip">${esc(c.h)}</span>`).join('') + fields.map(c => `<span class="chip${c.inp ? ' fill' : ''}" title="${c.inp ? 'Ô nhập' : 'Tự tính bằng công thức'}">${esc(c.h)}${c.calc ? ' · công thức' : ''}</span>`).join('');
+  const steps = [['1', 'Tải form của tháng', 'Mẫu riêng của ' + F.full + ', có sẵn danh sách người'], ['2', 'Điền trên Excel', 'Nhập vào các ô nền vàng'], ['3', 'Tải file lên và kiểm tra', 'Tháng theo ô Tháng ở thanh trên; app báo lỗi từng dòng'], ['4', 'Cập nhật vào báo cáo lương', 'Mỗi tháng một file, lần sau ghi đè lần trước']];
+  const chips = TH_FIX.slice(1).map(c => `<span class="chip">${esc(c.h)}</span>`).join('') + fields.map(c => `<span class="chip${c.inp ? ' fill' : ''}" title="${c.inp ? 'Ô nhập' : 'Tự tính bằng công thức'}">${esc(c.h)}</span>`).join('');
   let check = '';
   if (u) {
     const bad = u.rows.filter(r => r.errs.length), wn = u.rows.filter(r => !r.errs.length && r.warns.length), ok = u.rows.length - bad.length;
-    const show = fields.filter(x => x.k !== 'mdong');
+    const show = fields;
     const val = (fd, v) => v == null || v === '' ? '' : fd.t === 'flag' ? (v ? 'x' : '') : fd.t === 'text' ? esc(v) : fd.t === 'pct' ? pct(v * 100) : fd.t === 'num' ? fdm(v) : fmt(v);
     check = `<section class="card">
-      <div class="card-h"><h3>Kiểm tra file ${esc(u.file)}</h3><div class="toolbar"><button class="btn" data-th="cancel">Bỏ file</button><button class="btn primary" data-th="apply"${u.fatal || !ok ? ' disabled' : ''}>Cập nhật vào tháng ${mLbl(S.m)}</button></div></div>
+      <div class="card-h"><h3>Kiểm tra file ${esc(u.file)}</h3><div class="toolbar"><button class="btn" data-th="cancel">Bỏ file</button><button class="btn primary" data-th="apply"${u.fatal || !ok ? ' disabled' : ''}>${cur.src === 'file' ? 'Ghi đè' : 'Cập nhật vào'} tháng ${mLbl(S.m)}</button></div></div>
       ${u.fatal ? `<div class="banner bad">${esc(u.fatal)}</div>` : `
+      ${cur.src === 'file' ? `<div class="banner warn" style="margin-bottom:8px">Tháng ${mLbl(S.m)} đã có file <b>${esc(cur.file)}</b> (tải ${esc(new Date(cur.at).toLocaleString('vi-VN'))}). Bấm Ghi đè thì toàn bộ số của tháng này được thay bằng file mới.</div>` : ''}
       ${u.warn.map(w => `<div class="banner warn" style="margin-bottom:8px">${esc(w)}</div>`).join('')}
       <div class="kpis" style="margin-bottom:10px">
         <div class="kpi"><div class="s">Dòng đọc được</div><div class="v">${u.rows.length}</div></div>
@@ -1468,7 +1527,7 @@ function thuHoHTML() {
         <div class="kpi"><div class="s">Tổng BHXH, YT, TN</div><div class="v">${fmt(sumBy(u.rows.filter(r => !r.errs.length), r => r.v.bh))}</div></div>
         <div class="kpi"><div class="s">Người không có trong file</div><div class="v${u.missing.length ? ' warnc' : ''}">${u.missing.length}</div><div class="s">${u.missing.length ? 'Tính thu hộ = 0' : 'Đủ danh sách'}</div></div>
       </div>
-      <div class="scroll tall"><table class="th-t sticky"><thead><tr><th>Dòng</th><th class="sc">Mã NV</th><th>Họ và tên</th>${show.map(c => `<th class="${c.t === 'text' ? '' : 'r'}">${esc(c.h)}</th>`).join('')}<th>Kiểm tra</th></tr></thead><tbody>
+      <div class="scroll tall"><table class="th-t sticky"><thead><tr><th>Dòng</th><th class="sc">Mã NV</th><th>Họ và tên</th>${show.map(c => `<th class="${c.t === 'text' ? '' : 'r'}">${esc(c.s || c.h)}</th>`).join('')}<th>Kiểm tra</th></tr></thead><tbody>
       ${u.rows.slice().sort((a, b) => (b.errs.length - a.errs.length) || (b.warns.length - a.warns.length) || a.line - b.line).map(r => `<tr class="${r.errs.length ? 'bad' : r.warns.length ? 'wn' : ''}"><td class="mono small">${r.line}</td><td class="mono sc">${esc(r.id)}</td><td>${esc(r.name)}</td>${show.map(c => `<td class="${c.t === 'text' ? '' : 'r'}">${val(c, r.v[c.k])}</td>`).join('')}<td class="msg ${r.errs.length ? 'err' : r.warns.length ? 'warn' : ''}">${r.errs.length || r.warns.length ? esc(r.errs.concat(r.warns).join('; ')) : '<span class="okc">Hợp lệ</span>'}</td></tr>`).join('')}
       </tbody></table></div>`}
     </section>`;
@@ -1488,14 +1547,19 @@ function thuHoHTML() {
     <p>Bảo hiểm (BHXH, YT, TN), truy thu và các khoản thu khác của từng người, dùng cho cột thu hộ của Báo cáo lương. Mỗi nhà máy một mẫu form riêng theo file lương của nhà máy đó; đổi nhà máy ở thanh trên.</p></div>
     <div class="toolbar"><button class="btn" data-tab="luong">Xem Báo cáo lương</button></div></div>
   <div class="th-steps">${steps.map((s, i) => `<div class="th-step${i + 1 === stage ? ' on' : ''}"><span class="gn-ico">${s[0]}</span><div><b>${esc(s[1])}</b><small>${esc(s[2])}</small></div></div>`).join('')}</div>
-  <div class="grid2">
+  <div class="grid2 th-pair">
     <section class="card"><div class="card-h"><h3>Tải form tháng ${mLbl(S.m)} · ${esc(F.full)}</h3></div>
       <p class="small muted" style="margin-bottom:10px">${cs ? `Theo sheet BH của file lương Chư Sê: BHXH = (Hệ số lương + PC khu vực + PC trách nhiệm + Hệ số lương × % thâm niên vượt khung) × ${fmt(RT(S.f, S.m).BH_BASE)} × ${pct(RT(S.f, S.m).BH_RATE * 100)} (mức cơ sở và tỷ lệ theo Danh mục › Định mức & đơn giá).` : `Theo sheet CN trực tiếp có ăn và LX của file lương Thành Công: BHXH = Mức lương × ${pct(RT(S.f, S.m).BH_RATE * 100)}, người thử việc để 0 trừ khi ghi số. Mức lương và cột thử việc còn dùng để tính lương vận chuyển vật tư của lái xe.`} Form có sẵn ${EMP[S.f].length} người theo danh mục, chia theo bộ phận. Người không có thông tin bảo hiểm thì để trống, báo cáo sẽ bỏ qua.</p>
       <div class="th-cols" style="margin-bottom:12px">${chips}</div>
-      <div class="toolbar"><label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="th-pre" checked> Điền sẵn số đang dùng của tháng này</label><span class="grow"></span><button class="btn primary" data-th="dl">↓ Tải form Excel</button></div>
+      <p class="small muted" style="margin-bottom:10px">File chỉ có giá trị, không có công thức; cần tính thì người dùng tự viết công thức trong file.</p>
+      <div class="toolbar"><label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="th-pre" checked> Điền sẵn số đang có của tháng ${mLbl(S.m)}</label><span class="grow"></span><button class="btn primary" data-th="dl">↓ Tải form Excel</button></div>
     </section>
-    <section class="card"><div class="card-h"><h3>Tải file đã điền lên</h3></div>
-      <label class="th-drop" id="th-drop" for="th-file"><b>Kéo thả file .xlsx vào đây hoặc bấm để chọn file</b><span class="small muted">Form của ${esc(F.full)}. Số sẽ cập nhật vào tháng ${mLbl(S.m)} sau khi anh/chị bấm Cập nhật.</span></label>
+    <section class="card th-up"><div class="card-h"><h3>Tải file đã điền lên</h3><span class="small muted">Đổi tháng ở ô Tháng trên thanh trên cùng</span></div>
+      <label class="th-drop" id="th-drop" for="th-file"><span class="chip info" style="font-size:13px">Tháng ${mLbl(S.m)} · ${esc(F.full)}</span><b>Kéo thả file .xlsx vào đây hoặc bấm để chọn file</b><span class="small muted">Mỗi tháng một file. Số chỉ cập nhật sau khi bấm Cập nhật ở bước kiểm tra${cur.src === 'file' ? '; file mới sẽ ghi đè toàn bộ lần tải trước' : ''}.</span></label>
+      <table class="th-t" style="margin-top:12px"><thead><tr><th>Tháng</th><th>Trạng thái</th><th class="r">Số lần tải</th><th>Lần tải gần nhất</th></tr></thead><tbody>
+        <tr><td class="b">${mLbl(S.m)}</td><td>${cur.src === 'file' ? '<span class="chip ok">Đã tải file</span>' : cur.src === 'mau' ? '<span class="chip warn">Số mẫu</span>' : '<span class="chip">Chưa có file</span>'}</td><td class="r mono">${cur.src === 'file' ? (cur.count || 1) : 0}</td>
+          <td>${cur.src === 'file' ? `${esc(new Date(cur.at).toLocaleString('vi-VN'))}<div class="small muted">${esc(cur.file)}</div>` : '<span class="muted">—</span>'}</td></tr>
+      </tbody></table>
       <input type="file" id="th-file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
     </section>
   </div>
@@ -1504,14 +1568,14 @@ function thuHoHTML() {
     <div class="card-h"><div><h3>Số đang dùng cho Báo cáo lương tháng ${mLbl(S.m)}</h3>
       <div class="th-src small" style="margin-top:4px">${cur.src === 'file' ? `<span class="chip ok">Tải lên từ file</span><span class="muted">${esc(cur.file)}, ${esc(new Date(cur.at).toLocaleString('vi-VN'))}</span><button class="lnk" data-th="reset">Xóa số đã tải lên</button>`
         : cur.src === 'mau' ? '<span class="chip warn">Số mẫu để xem thử</span><button class="lnk" data-th="reset">Xóa số mẫu</button>'
-        : '<span class="chip">Chưa có</span><span class="muted">Chưa tải form tháng này, các khoản thu hộ tính bằng 0</span><button class="lnk" data-th="demo">Nạp số mẫu để xem thử</button>'}</div></div>
+        : '<span class="chip">Chưa có</span><span class="muted">Chưa tải form tháng này</span><button class="lnk" data-th="demo">Nạp số mẫu để xem thử</button>'}</div></div>
       <input type="search" id="th-q" placeholder="Tìm họ tên, mã NV, MST" value="${esc(S.thq || '')}" aria-label="Tìm người" style="width:220px"></div>
     <div style="padding:0 14px 12px"><div class="kpis">
       <div class="kpi"><div class="s">Số người đóng BH</div><div class="v">${tot.n}/${EMP[S.f].length}</div></div>
       <div class="kpi"><div class="s">BHXH, YT, TN</div><div class="v">${fmt(tot.bh)}</div></div>
       <div class="kpi"><div class="s">Truy thu</div><div class="v">${fmt(tot.truy)}</div></div>
       <div class="kpi"><div class="s">Khoản thu khác</div><div class="v">${fmt(tot.khac)}</div></div></div></div>
-    <div class="scroll tall" data-sk="th"><table class="th-t sticky"><thead><tr><th class="sc">Mã NV</th><th>Họ và tên</th><th>Mã số thuế</th><th>Chức vụ</th>${showC.map(c => `<th class="${c.t === 'text' ? '' : 'r'}">${esc(c.h)}</th>`).join('')}</tr></thead>
+    <div class="scroll tall" data-sk="th"><table class="th-t sticky"><thead><tr><th class="sc">Mã NV</th><th>Họ và tên</th><th>Mã số thuế</th><th>Chức vụ</th>${showC.map(c => `<th class="${c.t === 'text' ? '' : 'r'}">${esc(c.s || c.h)}</th>`).join('')}</tr></thead>
       <tbody>${body || `<tr><td colspan="${4 + showC.length}" class="empty">Không có người nào khớp.</td></tr>`}</tbody><tfoot>${foot}</tfoot></table></div>
   </section>`;
 }
