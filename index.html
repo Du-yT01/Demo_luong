@@ -613,6 +613,47 @@ table.pl-t{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:
 .grid2.th-pair{align-items:stretch}
 .th-pair>.card{display:flex;flex-direction:column}
 .th-up .th-drop{flex:1;justify-content:center}
+.pl-t tr.sec td{background:var(--tot)}
+.pl-card-h{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 14px 2px;flex-wrap:wrap}
+@media print{
+  body.pl-print-table .pl-sheet-h{display:block;padding:0 0 6px}
+  body.pl-print-table #pl-t-title{display:block!important;font-size:15px;font-weight:700;text-align:center}
+  #toasts{display:none!important}
+  body.pl-print-table .pl-seg2,body.pl-print-table #pl-t-info{display:none!important}
+  body.pl-print-table .pl-sw.more::after{display:none}
+  body.pl-print-table .pl-note{display:block!important}
+  body.pl-print-table .pane>.pl-note{display:block!important}
+}
+.pl-flt{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12.5px}
+.pl-flt label{color:var(--muted);font-weight:600}
+.pl-flt select{max-width:260px;font-size:12.5px;padding:4px 8px}
+.pl-t tr.wn td{background:var(--warn-soft)}
+@media print{body.pl-print-table .pl-flt{display:none!important}}
+#pl-jobb:empty{display:none}
+
+/* ô chọn có tìm kiếm / cây công việc */
+.dd{position:relative;display:inline-block}
+.dd-btn{display:inline-flex;align-items:center;gap:8px;min-width:180px;max-width:300px;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:13.5px;color:var(--fg);cursor:pointer;text-align:left}
+.dd-btn:hover{border-color:var(--muted)}
+.dd-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.dd-v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-car{color:var(--muted);font-size:11px}
+.dd-pop{position:absolute;z-index:40;top:calc(100% + 4px);left:0;width:min(380px,92vw);background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:8px}
+.dd-top{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.dd-q{flex:1;min-width:0;font-size:13px;padding:6px 8px}
+.dd-list{max-height:340px;overflow:auto}
+.dd-it{display:flex;align-items:center;gap:4px;padding:5px 6px;border-radius:6px;cursor:pointer;font-size:13px;line-height:1.35}
+.dd-it:hover{background:var(--sunk)}
+.dd-it.on{background:var(--accent-soft);color:var(--ok);font-weight:600}
+.dd-it.lv1{font-weight:600}
+.dd-it.lv2{padding-left:22px}
+.dd-it.lv3{padding-left:40px;color:var(--muted)}
+.dd-tg{all:unset;width:18px;text-align:center;color:var(--muted);cursor:pointer;flex:none;font-size:11px}
+.dd-tg:hover{color:var(--fg)}
+.dd-tg.sp{cursor:default}
+.dd-empty{padding:10px;color:var(--muted);font-size:13px}
+@media print{.dd-pop{display:none!important}}
+.dd-top .lnk{white-space:nowrap;flex:none}
 
 </style>
 </head>
@@ -683,14 +724,16 @@ const FAC = {
     groups: [
       { k: 'LX', name: 'Lái xe chở mủ', n: 7, title: 'Lái xe' }, { k: 'DD', name: 'Tổ đánh đông', n: 7 }, { k: 'CB', name: 'Chế biến', n: 40 },
       { k: 'CK', name: 'CKCĐ + NT', n: 4 }, { k: 'CT', name: 'Chà thùng', n: 3 }, { k: 'XN', name: 'Xe nâng', n: 2, title: 'Lái xe nâng' }],
-    bank: ['Agribank – CN Chư Sê', 'Agribank – CN Chư Sê', 'Vietcombank – CN Gia Lai', 'BIDV – CN Gia Lai', 'VietinBank – CN Gia Lai'],
+    bank: ['BIDV CN Gia Lai', 'BIDV CN Nam Gia Lai', 'BIDV CN Phố Núi', 'Vietcombank CN Chư Sê', 'Vietcombank CN Chư Sê'],
+    ck: 'CTY TNHH MTV CAO SU CHU SE - TT TIEN LUONG, AGC THANG {mm}/{yyyy} - NMCBCS',
   },
   thanhcong: {
     id: 'thanhcong', name: 'Thành Công', full: 'NM CBCS Thành Công',
     groups: [
       { k: 'DD', name: 'Tổ đánh đông – cán', n: 29 }, { k: 'TP', name: 'Tổ thành phẩm', n: 15 }, { k: 'GCN', name: 'Tổ gia công nhiệt', n: 4 },
       { k: 'S10', name: 'Phân xưởng SVR10-20', n: 18 }, { k: 'LX', name: 'Lái xe mủ', n: 18, title: 'Lái xe' }],
-    bank: ['Agribank – CN Đak Đoa', 'Agribank – CN Đak Đoa', 'Vietcombank – CN Gia Lai', 'BIDV – CN Gia Lai', 'Sacombank – CN Gia Lai'],
+    bank: ['Vietcombank PGD Đak Đoa', 'Vietcombank PGD Đak Đoa', 'Vietcombank PGD Đak Đoa', 'Vietcombank PGD Đak Đoa', 'Vietcombank CN Gia Lai'],
+    ck: 'CTY TNHH MTV CAO SU CHƯ SÊ - TT TIEN LUONG, AGC THANG {mm}/{yyyy} - NM.',
   },
 };
 /* ============ 2b. ĐỊNH MỨC & ĐƠN GIÁ — lấy theo Danh mục › Định mức & đơn giá của app, theo tháng ============
@@ -750,7 +793,7 @@ const EMP = {};
           id: 'NV' + String(seq).padStart(3, '0'), name, gender: male ? 'nam' : 'nu', k: g.k,
           title: i === 0 && g.k !== 'LX' ? 'Tổ trưởng' : (g.title || 'Công nhân'),
           mst: '0990' + (fi + 1) + String(seq).padStart(7, '0'),
-          bankAcc: noBank ? '' : String(Math.floor(U(R, 1e12, 9.9e12))), bank: noBank ? '' : F.bank[Math.floor(R() * F.bank.length)],
+          bankAcc: noBank ? '' : (R() < 0.15 ? '0291000' + String(Math.floor(U(R, 1e5, 9.9e5))) : String(Math.floor(U(R, 1e9, 9.9e9)))), bank: noBank ? '' : F.bank[Math.floor(R() * F.bank.length)],
           nhom: g.k === 'CB' ? ['N1', 'N2', 'N3'][i % 3] : '',
           iaLau: F.id === 'chuse' && g.k === 'LX' && i === 0,
           tv: F.id === 'thanhcong' && g.k === 'LX' && i >= g.n - 2,
@@ -800,66 +843,73 @@ const thRow = (f, m, id) => thGet(f, m).rows[id] || {};
    Ngày lễ: tấn ngày lễ × định mức × đơn giá × hệ số lễ, chia đều cho người có công trong ngày lễ; công lễ = tấn × định mức (chưa nhân hệ số).
    Không tính lái máy xuống mủ thu mua ở trạm cân. */
 function computeCS(m) {
-  const F = RT('chuse', m), CS_DM = F.DM, DG = F.DG, D = daysIn(m), R = rng(hash('cs' + m)), E = EMP.chuse, th = thGet('chuse', m);
-  // đơn giá từng phân hệ (Danh mục › Định mức & đơn giá)
+  const F = RT('chuse', m), DM = F.DM, D = daysIn(m), R = rng(hash('cs' + m)), E = EMP.chuse, th = thGet('chuse', m);
   const GDG = { LX: F.DG_LX, DD: F.DG_DD, CB: F.DG_CB, CU: F.DG_CU, CK: F.DG_CK, CT: F.DG_CT, XN: F.DG_XN };
-  const L = {}; const line = (k, dm, dg) => (L[k] = L[k] || { dm, dg, t: 0, lt: 0, cl: 0, tl: 0 });
-  const addL = (k, dm, d, t, dg) => { const o = line(k, dm, dg), r = holRate(m, d); if (r) { o.lt += t; o.cl += t * dm; o.tl += t * dm * dg * r; } else { o.t += t; } };
-  const P = {}; E.forEach(e => { P[e.id] = { e, w: [], an: 0, sang: 0, spc: 0, sp: 0, lec: 0, le: 0, parts: {}, qN: 0, qT: 0, qR: 0, qlN: 0, qlT: 0, qlR: 0, holN: 0, ht: { n: {}, l: {} } }; });
-  // Bảng hạch toán: công, tiền từng người theo nhóm mủ (n = ngày thường, l = ngày lễ)
-  const htAdd = (id, d, dg, vec, frac) => { const r = holRate(m, d), h = P[id].ht[r ? 'l' : 'n']; for (const k in vec) { const c = vec[k] * frac; if (!c) continue; const o = h[k] = h[k] || { c: 0, v: 0 }; o.c += c; o.v += c * dg * (r || 1); } };
+  // Định mức từng vị trí theo sản phẩm (Danh mục › Định mức & đơn giá). Định mức gộp của một sản phẩm = tổng các vị trí.
+  const POS = {
+    s3: { CB: DM.cb3L, DD: DM.dd3L, CK: DM.ck3L, CT: DM.ct3L }, s10d2: { CB: DM.cb3L, DD: DM.dd3L, CK: DM.ck3L, CT: DM.ct3L },
+    k: { CB: DM.cb10KT, CU: DM.cu, DD: DM.dd10, CK: DM.ck10, CT: DM.ct10 }, rss: { CB: DM.cbRSS },
+    tm3: { CB: DM.cb3L, DD: DM.dd3L, CK: DM.ck3L, CT: DM.ct3L }, tm10: { CB: DM.cb10TM, CU: DM.cu, CK: DM.ck10, CT: DM.ct10 }, nl: { CB: DM.cbNL },
+    pal: { XN: DM.xnP }, xl: { XN: DM.xnX }, xh: { XN: DM.xnH } };
+  const HTC = { s3: '3L', s10d2: '3L', k: '10', rss: 'RSS', tm3: 'TM3L', tm10: 'TM10', nl: '10', pal: 'PAL', xl: 'KHAC', xh: 'KHAC' }; // cột Bảng hạch toán
+  const L = {}; // dòng bảng phân toán: t = tấn, ct = công, tt = tiền (ngày thường); lt, cl, tl (ngày lễ)
+  const line = k => (L[k] = L[k] || { t: 0, lt: 0, ct: 0, cl: 0, tt: 0, tl: 0 });
+  const addT = (k, d, t, cong, tien) => { const o = line(k), r = holRate(m, d); if (r) { o.lt += t; o.cl += cong; o.tl += tien * r; } else { o.t += t; o.ct += cong; o.tt += tien; } };
+  const P = {}; E.forEach(e => { P[e.id] = { e, w: [], an: 0, sang: 0, spc: 0, sp: 0, lec: 0, le: 0, parts: {}, qN: 0, qT: 0, qR: 0, qlN: 0, qlT: 0, qlR: 0, ht: { n: {}, l: {} }, ln: {} }; });
+  // ghi phần công, tiền của từng người theo dòng công việc (bảng phân toán) và cột bảng hạch toán; khóa vec: "dòng" hoặc "dòng|cột hạch toán"
+  const htAdd = (id, d, dg, vec, frac) => { const r = holRate(m, d), p = P[id], h = p.ht[r ? 'l' : 'n']; for (const key in vec) { const c = vec[key] * frac; if (!c) continue;
+    const [ln, cat0] = key.split('|'), cat = cat0 || HTC[ln], v = c * dg * (r || 1), o = h[cat] = h[cat] || { c: 0, v: 0 }; o.c += c; o.v += v;
+    const L1 = p.ln[ln] = p.ln[ln] || { c: 0, v: 0, lc: 0, lv: 0, ht: { n: {}, l: {} } }; if (r) { L1.lc += c; L1.lv += v; } else { L1.c += c; L1.v += v; }
+    const h2 = L1.ht[r ? 'l' : 'n'], o2 = h2[cat] = h2[cat] || { c: 0, v: 0 }; o2.c += c; o2.v += v; } };
   const part = (id, key, label, c, v, hol, fx) => { const p = P[id].parts[key] = P[id].parts[key] || { label, c: 0, v: 0, hol, fx }; p.c += c; p.v += v; };
-  const credit = (id, c, d, dg) => { const r = holRate(m, d), p = P[id]; if (r) { p.lec += c; p.le += c * dg * r; } else { p.spc += c; p.sp += c * dg; } return r; };
+  const credit = (id, c, d, dg) => { const r = holRate(m, d), p = P[id]; if (r) { p.lec += c; p.le += c * dg * r; } else { p.spc += c; p.sp += c * dg; } };
   const off = new Set(); for (let d = 1; d <= D; d++) if (R() < 0.05 && !holRate(m, d)) off.add(d);
   const grp = k => E.filter(e => e.k === k);
-  // chấm công tổ (app: dd_shifts, factory_shifts, ck_shifts, ct_shifts, xe_shifts, cu_shifts)
   E.filter(e => e.k !== 'LX').forEach(e => { for (let d = 1; d <= D; d++) { let w = 0; if (!off.has(d) && R() < 0.9) w = e.title === 'Tổ trưởng' ? 1.1 : (R() < 0.05 ? 0.5 : 1); P[e.id].w[d] = w; if (w) { P[e.id].an++; if (['CB', 'DD', 'CK'].includes(e.k) && R() < 0.3) P[e.id].sang++; } } });
-  // ngày lễ: chia đều theo đầu người có công trong ngày lễ
   const heads = (list, d) => list.filter(e => P[e.id].w[d]).map(e => e.id);
-  const perHead = (fund, ids, d, key, label, txt, dg, vec) => { const r = holRate(m, d); ids.forEach(id => { const c = fund / ids.length; credit(id, c, d, dg); htAdd(id, d, dg, vec, 1 / ids.length); P[id].holN = 1; part(id, key, label, c, c * dg * r, true, `${txt}: quỹ ngày lễ ${fc(fund)} công chia đều cho ${ids.length} người làm ngày lễ, × ${r}`); }); };
+  const POSN = { CB: 'Chế biến', CU: 'Cán ủ', DD: 'Đánh đông', CK: 'CKCĐ + NT', CT: 'Chà thùng', XN: 'Xe nâng' };
+  // chia quỹ (vec: công theo cột hạch toán) cho danh sách người: ngày thường theo công, ngày lễ chia đều đầu người
+  const give = (list, d, vec, dg, key, label, fx) => {
+    const f = sumBy(Object.values(vec), x => x), r = holRate(m, d); if (!f) return;
+    if (r) { const ids = heads(list, d); ids.forEach(id => { const c = f / ids.length; credit(id, c, d, dg); htAdd(id, d, dg, vec, 1 / ids.length); part(id, key + 'L', label + ' ngày lễ', c, c * dg * r, true, `Quỹ ngày lễ chia đều cho ${ids.length} người có công, × ${r}`); }); return; }
+    const w = {}; list.forEach(e => { if (P[e.id].w[d]) w[e.id] = P[e.id].w[d]; });
+    Object.entries(split(f, w)).forEach(([id, c]) => { credit(id, c, d, dg); htAdd(id, d, dg, vec, c / f); part(id, key, label, c, c * dg, false, fx); });
+  };
+  const monthFund = { DD: {}, CK: {}, CT: {}, XN: {} };
   const xuat = U(R, 560, 780);
-  const monthFund = { DD: {}, CK: {}, CT: {}, XN: {} }; // quỹ ngày thường cộng cả tháng (công)
   for (let d = 1; d <= D; d++) {
     const r = holRate(m, d);
-    // sản lượng thành phẩm theo ngày (app: phiếu nhập kho fg_slips)
-    const o = off.has(d) ? { t3: 0, k: 0, tm: 0, nl: 0, rss: 0, cu: [0, 0, 0] } : { t3: U(R, 8, 12), k: U(R, 7, 12), tm: U(R, 3.5, 8.5), nl: U(R, 0, 1.1), rss: R() < 0.75 ? U(R, 0.6, 1.6) : 0, cu: [U(R, 3.5, 6), U(R, 3.5, 6), U(R, 3.5, 6)] };
-    const pal = o.t3 * 0.92, cuS = o.cu[0] + o.cu[1] + o.cu[2];
-    addL('cb3L', CS_DM.cb3L, d, o.t3, GDG.CB); addL('cb10KT', CS_DM.cb10KT, d, o.k, GDG.CB); addL('cb10TM', CS_DM.cb10TM, d, o.tm, GDG.CB); addL('cbNL', CS_DM.cbNL, d, o.nl, GDG.CB); addL('cbRSS', CS_DM.cbRSS, d, o.rss, GDG.CB);
-    ['N1', 'N2', 'N3'].forEach((g, i) => addL('cu' + g, CS_DM.cu, d, o.cu[i], GDG.CU));
-    addL('ck3L', CS_DM.ck3L, d, o.t3, GDG.CK); addL('ck10', CS_DM.ck10, d, o.k + o.tm + o.nl, GDG.CK); addL('ct3L', CS_DM.ct3L, d, o.t3, GDG.CT); addL('ct10', CS_DM.ct10, d, o.k + o.tm + o.nl, GDG.CT);
-    addL('xnP', CS_DM.xnP, d, pal, GDG.XN); addL('xnX', CS_DM.xnX, d, cuS, GDG.XN);
-    // chế biến (gồm CB mủ RSS 7,0): ngày thường chia theo công người có mặt, ngày lễ chia đều đầu người
-    const cbV = { '3L': o.t3 * CS_DM.cb3L, '10': o.k * CS_DM.cb10KT + o.nl * CS_DM.cbNL, TM10: o.tm * CS_DM.cb10TM, RSS: o.rss * CS_DM.cbRSS }, cbF = cbV['3L'] + cbV['10'] + cbV.TM10 + cbV.RSS;
-    if (r) perHead(cbF, heads(grp('CB'), d), d, 'cbL', 'Chế biến ngày lễ', 'Chế biến', GDG.CB, cbV);
-    else { const wCB = {}; grp('CB').forEach(e => { if (P[e.id].w[d]) wCB[e.id] = P[e.id].w[d]; });
-      Object.entries(split(cbF, wCB)).forEach(([id, c]) => { credit(id, c, d, GDG.CB); htAdd(id, d, GDG.CB, cbV, cbF ? c / cbF : 0); part(id, 'cb', 'Chế biến ngày thường', c, c * GDG.CB, false, `Mỗi ngày: (tấn SVR3L+10 × ${fdm(CS_DM.cb3L)} + SVR10 KT/TM × ${fdm(CS_DM.cb10KT)} + ngoại lệ × ${fdm(CS_DM.cbNL)} + RSS × ${fdm(CS_DM.cbRSS)}) × ${fmt(GDG.CB)}, chia theo công người có mặt`); }); }
-    ['N1', 'N2', 'N3'].forEach((g, i) => { const list = grp('CB').filter(e => e.nhom === g);
-      if (r) { perHead(o.cu[i] * CS_DM.cu, heads(list, d), d, 'cuL', 'Cán ủ ngày lễ (nhóm ' + g + ')', 'Cán ủ nhóm ' + g, GDG.CU, { '10': o.cu[i] * CS_DM.cu }); return; }
-      const w = {}; list.forEach(e => { if (P[e.id].w[d]) w[e.id] = P[e.id].w[d]; });
-      Object.entries(split(o.cu[i] * CS_DM.cu, w)).forEach(([id, c]) => { credit(id, c, d, GDG.CU); htAdd(id, d, GDG.CU, { '10': c }, 1); part(id, 'cu', 'Cán ủ (nhóm ' + g + ')', c, c * GDG.CU, false, `Mỗi ngày: tấn cán ủ của nhóm ${g} × ${fdm(CS_DM.cu)} × ${fmt(GDG.CU)}, chia theo công trong nhóm`); }); });
-    // lái xe: quy khô từng người chở (Giao nhận mủ › Tổng tháng). Mủ nước đi làm RSS tách dòng "Vận chuyển mủ RSS" (Công ty 0,8 · Ia Lâu 1,2), chia theo phần mủ nước từng xe
-    const trips = grp('LX').map(e => (R() < 0.88 ? { e, n: U(R, 0.9, 2.3), t: U(R, 0.5, 1.6) } : null)).filter(Boolean);
-    const qN = sumBy(trips, x => x.n), qT = sumBy(trips, x => x.t);
+    // thành phẩm theo ngày (phiếu nhập kho): Công ty SVR3L, SVR10 dây chuyền 2 tấn, SVR10 dây chuyền 1,5 tấn, RSS; Thu mua SVR3L, SVR10, ngoại lệ
+    const o = off.has(d) ? { s3: 0, s10d2: 0, k: 0, rss: 0, tm3: 0, tm10: 0, nl: 0 } : { s3: U(R, 6, 9), s10d2: U(R, 1.2, 3), k: U(R, 7, 12), rss: R() < 0.75 ? U(R, 0.6, 1.6) : 0, tm3: U(R, 0, 2), tm10: U(R, 3.5, 8.5), nl: U(R, 0, 1.1) };
+    o.pal = (o.s3 + o.s10d2 + o.tm3) * 0.92; o.xl = o.k + o.tm10;
+    ['s3', 's10d2', 'k', 'rss', 'tm3', 'tm10', 'nl', 'pal', 'xl'].forEach(p => { const pos = POS[p]; addT(p, d, o[p], sumBy(Object.values(pos), x => x) * o[p], sumBy(Object.keys(pos), k => pos[k] * o[p] * GDG[k])); });
+    const vecOf = pos => { const v = {}; ['s3', 's10d2', 'k', 'rss', 'tm3', 'tm10', 'nl', 'pal', 'xl'].forEach(p => { const dm = POS[p][pos]; if (dm && o[p]) v[p] = (v[p] || 0) + o[p] * dm; }); return v; };
+    // chế biến: chia quỹ ngày theo công người có mặt
+    give(grp('CB'), d, vecOf('CB'), GDG.CB, 'cb', 'Chế biến', `Mỗi ngày: tấn thành phẩm từng loại × định mức chế biến (SVR3L/10 DC2 ${fdm(DM.cb3L)}, DC1,5 ${fdm(DM.cb10KT)}, RSS ${fdm(DM.cbRSS)}, ngoại lệ ${fdm(DM.cbNL)}), chia theo công người có mặt`);
+    // cán ủ: tấn SVR10 dây chuyền 1,5 tấn (Công ty + thu mua) chia cho 3 nhóm theo sản lượng nhóm, trong nhóm chia theo công
+    const wk = [U(R, .8, 1.2), U(R, .8, 1.2), U(R, .8, 1.2)], sw = wk[0] + wk[1] + wk[2];
+    ['N1', 'N2', 'N3'].forEach((g, i) => give(grp('CB').filter(e => e.nhom === g), d, { k: o.k * DM.cu * wk[i] / sw, tm10: o.tm10 * DM.cu * wk[i] / sw }, GDG.CU, 'cu', 'Cán ủ (nhóm ' + g + ')', `Tấn SVR10 dây chuyền 1,5 tấn của nhóm ${g} × ${fdm(DM.cu)}, chia theo công trong nhóm`));
+    // đánh đông, CKCĐ + NT, chà thùng, xe nâng: ngày thường cộng dồn quỹ tháng, ngày lễ chia đều trong ngày
+    ['DD', 'CK', 'CT', 'XN'].forEach(k => { const vec = vecOf(k);
+      if (!r) { const mf = monthFund[k]; mf.v = mf.v || {}; for (const c in vec) mf.v[c] = (mf.v[c] || 0) + vec[c]; return; }
+      give(grp(k), d, vec, GDG[k], 'm', 'Lương sản phẩm', ''); });
+    // lái xe: quy khô từng xe chở (Giao nhận mủ › Tổng tháng); mủ nước đi làm RSS chia theo phần mủ nước từng xe
+    const trips = grp('LX').map(e => (R() < 0.88 ? { e, n: U(R, 0.9, 2.3), t: U(R, 0.5, 1.6) } : null)).filter(Boolean), qN = sumBy(trips, x => x.n);
     trips.forEach(x => { const e = x.e, p = P[e.id], rs = qN ? Math.min(x.n, o.rss * x.n / qN) : 0, sv = x.n - rs; p.an++;
-      const dN = e.iaLau ? CS_DM.ilN : CS_DM.lxN, dT = e.iaLau ? CS_DM.ilT : CS_DM.lxT, dR = e.iaLau ? CS_DM.ilR : CS_DM.lxR;
-      credit(e.id, sv * dN + rs * dR + x.t * dT, d, GDG.LX); htAdd(e.id, d, GDG.LX, { '3L': sv * dN, '10': x.t * dT, RSS: rs * dR }, 1);
-      addL(e.iaLau ? 'ilN' : 'lxN', dN, d, sv, GDG.LX); addL(e.iaLau ? 'ilR' : 'lxR', dR, d, rs, GDG.LX); addL(e.iaLau ? 'ilT' : 'lxT', dT, d, x.t, GDG.LX);
+      const dN = e.iaLau ? DM.ilN : DM.lxN, dT = e.iaLau ? DM.ilT : DM.lxT, dR = e.iaLau ? DM.ilR : DM.lxR, c = sv * dN + rs * dR + x.t * dT;
+      credit(e.id, c, d, GDG.LX); const LN = e.iaLau ? 'ilN' : 'lx', LT = e.iaLau ? 'ilT' : 'lx'; htAdd(e.id, d, GDG.LX, { [LN + '|3L']: sv * dN, [LT + '|10']: x.t * dT, [LN + '|RSS']: rs * dR }, 1);
+      if (e.iaLau) { addT('ilN', d, sv + rs, sv * dN + rs * dR, (sv * dN + rs * dR) * GDG.LX); addT('ilT', d, x.t, x.t * dT, x.t * dT * GDG.LX); }
+      else addT('lx', d, x.n + x.t, c, c * GDG.LX);
       if (r) { p.qlN += sv; p.qlR += rs; p.qlT += x.t; } else { p.qN += sv; p.qR += rs; p.qT += x.t; } });
-    addL('dd3L', CS_DM.dd3L, d, qN, GDG.DD); addL('dd10', CS_DM.dd10, d, qT, GDG.DD);
-    // đánh đông, CKCĐ + NT, chà thùng, xe nâng: ngày thường cộng dồn chia theo công tháng; ngày lễ chia đều đầu người trong ngày
-    const V4 = { DD: { '3L': qN * CS_DM.dd3L, '10': qT * CS_DM.dd10 }, CK: { '3L': o.t3 * CS_DM.ck3L, '10': (o.k + o.nl) * CS_DM.ck10, TM10: o.tm * CS_DM.ck10 },
-      CT: { '3L': o.t3 * CS_DM.ct3L, '10': (o.k + o.nl) * CS_DM.ct10, TM10: o.tm * CS_DM.ct10 }, XN: { PAL: pal * CS_DM.xnP, '10': cuS * CS_DM.xnX } };
-    Object.entries(V4).forEach(([k, vec]) => { const f = sumBy(Object.values(vec), x => x);
-      if (!r) { const mf = monthFund[k]; mf.f = (mf.f || 0) + f; mf.v = mf.v || {}; for (const c in vec) mf.v[c] = (mf.v[c] || 0) + vec[c]; return; }
-      perHead(f, heads(grp(k), d), d, 'hol', 'Lương ngày lễ', gName('chuse', k), GDG[k], vec); });
   }
-  addL('xnH', CS_DM.xnH, 0, xuat, GDG.XN); monthFund.XN.f += xuat * CS_DM.xnH; monthFund.XN.v.KHAC = xuat * CS_DM.xnH;
+  // lái máy xuất hàng: nhập cuối tháng, tính ngày thường
+  addT('xh', 0, xuat, xuat * DM.xnH, xuat * DM.xnH * GDG.XN); monthFund.XN.v.xh = (monthFund.XN.v.xh || 0) + xuat * DM.xnH;
   Object.entries(monthFund).forEach(([k, o]) => {
-    const w = {}; grp(k).forEach(e => { w[e.id] = sumBy(P[e.id].w.filter((x, d) => !holRate(m, d)), x => x); });
-    const sw = Object.values(w).reduce((a, b) => a + b, 0);
-    Object.entries(split(o.f, w)).forEach(([id, c]) => { P[id].spc += c; P[id].sp += c * GDG[k]; htAdd(id, 0, GDG[k], o.v, o.f ? c / o.f : 0); part(id, 'm', 'Lương sản phẩm ngày thường', c, c * GDG[k], false, `Quỹ tổ ${fc(o.f)} công × ${f1(w[id])} công ÷ ${f1(sw)} công cả tổ; × ${fmt(GDG[k])}`); });
+    const f = sumBy(Object.values(o.v || {}), x => x), w = {}; grp(k).forEach(e => { w[e.id] = sumBy(P[e.id].w.filter((x, d) => !holRate(m, d)), x => x); });
+    const swk = Object.values(w).reduce((a, b) => a + b, 0);
+    Object.entries(split(f, w)).forEach(([id, c]) => { P[id].spc += c; P[id].sp += c * GDG[k]; htAdd(id, 0, GDG[k], o.v, f ? c / f : 0); part(id, 'm', 'Lương sản phẩm ngày thường', c, c * GDG[k], false, `Quỹ ${POSN[k]} ${fc(f)} công × ${f1(w[id])} công ÷ ${f1(swk)} công cả tổ; × ${fmt(GDG[k])}`); });
   });
-  grp('LX').forEach(e => { const p = P[e.id], dN = e.iaLau ? CS_DM.ilN : CS_DM.lxN, dT = e.iaLau ? CS_DM.ilT : CS_DM.lxT, dR = e.iaLau ? CS_DM.ilR : CS_DM.lxR;
+  grp('LX').forEach(e => { const p = P[e.id], dN = e.iaLau ? DM.ilN : DM.lxN, dT = e.iaLau ? DM.ilT : DM.lxT, dR = e.iaLau ? DM.ilR : DM.lxR;
     p.parts.lx = { label: 'Vận chuyển mủ ngày thường', c: p.spc, v: p.sp, fx: `${f3(p.qN)} t mủ nước × ${fdm(dN)} + ${f3(p.qR)} t mủ RSS × ${fdm(dR)} + ${f3(p.qT)} t đông tạp × ${fdm(dT)}${e.iaLau ? ' (định mức Ia Lâu)' : ''}` };
     if (p.lec) p.parts.lxL = { label: 'Vận chuyển mủ ngày lễ', c: p.lec, v: p.le, hol: true, fx: `${f3(p.qlN + p.qlR + p.qlT)} t quy khô tự chở ngày lễ × định mức × hệ số lễ` }; });
   const rows = E.map(e => {
@@ -868,23 +918,24 @@ function computeCS(m) {
     const bh = +t.bh || 0, truy = +t.truy || 0, khac = +t.khac || 0, cd = Math.round(Math.max(0, tong - bh - truy) * F.CD), ung = tg;
     const nhan = tt - cd - truy - ung - bh - khac;
     return { id: e.id, k: e.k, e, name: e.name, title: e.title, mst: e.mst, nhom: e.nhom, spc: p.spc, sp: p.sp, lec: p.lec, le: p.le, tong, ng, tg, ns, ts, tt, cd, truy, ung, bh, khac, nhan,
-      ht: p.ht, TL: tong, LE: p.le, CQD: p.spc + p.lec, AN: ng, THU: cd + truy + bh + khac, NHAN: nhan, parts: Object.values(p.parts).filter(x => Math.abs(x.v) > 0.5), th: t };
+      ht: p.ht, ln: p.ln, TL: tong, LE: p.le, CQD: p.spc + p.lec, AN: ng, THU: cd + truy + bh + khac, NHAN: nhan, parts: Object.values(p.parts).filter(x => Math.abs(x.v) > 0.5), th: t };
   });
-  const B = k => L[k] || { dm: CS_DM[k], t: 0, lt: 0, cl: 0, tl: 0 };
-  Object.values(L).forEach(o => Object.assign(o, { ct: o.t * o.dm, tt: o.t * o.dm * o.dg }));
-  const pt = [
-    ['g', 'I', 'LÁI XE CHỞ MỦ (MỦ SVR)', ['lxN', 'lxT', 'ilN', 'ilT']], ['r', '01', 'Mủ nước quy khô · các đội', 'lxN'], ['r', '02', 'Mủ đông tạp quy khô · các đội', 'lxT'], ['r', '03', 'Mủ nước quy khô · Ia Lâu', 'ilN'], ['r', '04', 'Mủ đông tạp quy khô · Ia Lâu', 'ilT'],
-    ['g', 'II', 'TỔ ĐÁNH ĐÔNG', ['dd3L', 'dd10']], ['r', '01', 'Mủ SVR3L + 10 (mủ nước quy khô)', 'dd3L'], ['r', '02', 'Mủ SVR10 (đông tạp quy khô)', 'dd10'],
-    ['g', 'III', 'CHẾ BIẾN MỦ SVR', ['cb3L', 'cb10KT', 'cb10TM', 'cbNL']], ['r', '01', 'Dây chuyền 2 tấn · Mủ SVR3L + 10', 'cb3L'], ['r', '02', 'Dây chuyền 1,5 tấn · Mủ SVR10 khai thác', 'cb10KT'], ['r', '03', 'Dây chuyền 1,5 tấn · Mủ SVR10 thu mua', 'cb10TM'], ['r', '04', 'Dây chuyền 1,5 tấn · Ngoại lệ', 'cbNL'],
-    ['g', 'IV', 'CHẾ BIẾN MỦ RSS', ['cbRSS', 'lxR', 'ilR']], ['r', '01', 'CB mủ RSS', 'cbRSS'], ['r', '02', 'Vận chuyển mủ RSS · Công ty', 'lxR'], ['r', '03', 'Vận chuyển mủ RSS · Ia Lâu', 'ilR'],
-    ['g', 'V', 'CÁN Ủ', ['cuN1', 'cuN2', 'cuN3']], ['r', '01', 'Nhóm N1', 'cuN1'], ['r', '02', 'Nhóm N2', 'cuN2'], ['r', '03', 'Nhóm N3', 'cuN3'],
-    ['g', 'VI', 'CKCĐ + NT', ['ck3L', 'ck10']], ['r', '01', 'Mủ SVR3L + 10', 'ck3L'], ['r', '02', 'Mủ SVR10', 'ck10'],
-    ['g', 'VII', 'CHÀ THÙNG', ['ct3L', 'ct10']], ['r', '01', 'Mủ SVR3L + 10', 'ct3L'], ['r', '02', 'Mủ SVR10', 'ct10'],
-    ['g', 'VIII', 'XE NÂNG', ['xnP', 'xnX', 'xnH']], ['r', '01', 'Xe nâng · hàng pallet', 'xnP'], ['r', '02', 'Xe xúc lật cán ủ', 'xnX'], ['r', '03', 'Lái máy phục vụ xuất hàng (nhập cuối tháng)', 'xnH'],
-  ].map(x => x[0] === 'r' ? { kind: 'r', stt: x[1], name: x[2], ...B(x[3]) } : { kind: 'g', stt: x[1], name: x[2], keys: x[3] });
-  pt.forEach(x => { if (x.kind === 'g') { const s = x.keys.map(B); Object.assign(x, { t: sumBy(s, y => y.t), lt: sumBy(s, y => y.lt), ct: sumBy(s, y => y.ct), cl: sumBy(s, y => y.cl), tt: sumBy(s, y => y.tt), tl: sumBy(s, y => y.tl) }); } });
-  return { rows, pt, ptTotal: sumBy(pt.filter(x => x.kind === 'g'), x => x.tt + x.tl) };
+  // Bảng phân toán theo mẫu Chư Sê: A. Tiền lương chế biến (I Công ty, II Thu mua, III Lái xe nâng), B. Tiền ăn ca
+  const B = k => { const o = L[k] || { t: 0, lt: 0, ct: 0, cl: 0, tt: 0, tl: 0 }; return Object.assign({}, o); };
+  const dmOf = k => (POS[k] ? sumBy(Object.values(POS[k]), x => x) : null);
+  const R_ = (stt, name, k, dm) => { const o = B(k); return { kind: 'r', key: k, stt, name, ...o, dm: dm != null ? dm : (o.t ? o.ct / o.t : dmOf(k)), dml: dm == null && o.lt ? o.cl / o.lt : null }; };
+  const G_ = (stt, name, rows) => ({ kind: 'g', stt, name, t: 0, lt: 0, ct: sumBy(rows, x => x.ct), cl: sumBy(rows, x => x.cl), tt: sumBy(rows, x => x.tt), tl: sumBy(rows, x => x.tl), dm: null });
+  const I = [R_('01', 'Chế biến mủ SVR3L', 's3', dmOf('s3')), R_('02', 'Chế biến mủ SVR10 (dây chuyền 2 tấn)', 's10d2', dmOf('s10d2')), R_('03', 'Chế biến mủ SVR10 (dây chuyền 1,5 tấn)', 'k', dmOf('k')),
+    R_('04', 'Chế biến mủ RSS', 'rss', dmOf('rss')), R_('05', 'Vận chuyển mủ Chư Sê', 'lx'), R_('06', 'Vận chuyển mủ Ia Lâu (SVR3L)', 'ilN'), R_('07', 'Vận chuyển mủ Ia Lâu (SVR10 + NL)', 'ilT', DM.ilT)];
+  const II = [R_('01', 'Chế biến mủ SVR3L', 'tm3', dmOf('tm3')), R_('02', 'Chế biến mủ SVR10', 'tm10', dmOf('tm10')), R_('03', 'Chế biến mủ ngoại lệ', 'nl', dmOf('nl'))];
+  const III = [R_('01', 'Xe nâng · hàng pallet', 'pal', dmOf('pal')), R_('02', 'Xe xúc lật cán ủ', 'xl', dmOf('xl')), R_('03', 'Lái máy phục vụ xuất hàng (nhập cuối tháng)', 'xh', dmOf('xh'))];
+  const all = I.concat(II, III), an = sumBy(rows, x => x.tg + x.ts);
+  const A = { kind: 'sec', stt: 'A', name: 'Tiền lương chế biến', ct: sumBy(all, x => x.ct), cl: sumBy(all, x => x.cl), tt: sumBy(all, x => x.tt), tl: sumBy(all, x => x.tl) };
+  const pt = [A, G_('I', 'Chế biến mủ Công ty', I), ...I, G_('II', 'Chế biến mủ thu mua', II), ...II, G_('III', 'Lái xe nâng', III), ...III,
+    { kind: 'sec', stt: 'B', name: 'Tiền ăn ca', ct: 0, cl: 0, tt: an, tl: 0, onlyTotal: true }];
+  return { rows, pt, ptTotal: A.tt + A.tl, ptAn: an };
 }
+
 
 /* ============ 6. TÍNH LƯƠNG — NM THÀNH CÔNG ============
    Quỹ từng khâu = tấn × định mức × 211.634 (phiếu nghiệm thu); định mức cố định theo phiếu nghiệm thu.
@@ -895,11 +946,13 @@ function computeCS(m) {
 function computeTC(m) {
   const F = RT('thanhcong', m), TC_DM = F.DM, DG = F.DG, D = daysIn(m), R = rng(hash('tc' + m)), E = EMP.thanhcong, th = thGet('thanhcong', m);
   const L = {}; const addL = (k, dm, d, t) => { const o = L[k] = L[k] || { dm, t: 0, lt: 0, cl: 0, tl: 0 }, r = holRate(m, d); if (r) { o.lt += t; o.cl += t * dm; o.tl += t * dm * DG * r; } else o.t += t; };
-  const P = {}; E.forEach(e => { P[e.id] = { e, w: [], H: 0, K: 0, bxT: 0, bxN: 0, an: 0, sc: 0, st: 0, lc: 0, lt: 0, bc: 0, bt: 0, blc: 0, blt: 0, vc: 0, vt: 0, qt: 0, ql: 0, ltT: 0, dT: 0 }; });
+  const P = {}; E.forEach(e => { P[e.id] = { e, w: [], H: 0, K: 0, bxT: 0, bxN: 0, an: 0, sc: 0, st: 0, lc: 0, lt: 0, bc: 0, bt: 0, blc: 0, blt: 0, vc: 0, vt: 0, qt: 0, ql: 0, ltT: 0, dT: 0, ln: {} }; });
+  // phần công, tiền của từng người theo dòng bảng phân toán (dùng cho bộ lọc công việc)
+  const lnAdd = (id, line, c, v, hol) => { const L1 = P[id].ln[line] = P[id].ln[line] || { c: 0, v: 0, lc: 0, lv: 0 }; if (hol) { L1.lc += c; L1.lv += v; } else { L1.c += c; L1.v += v; } };
   const grp = k => E.filter(e => e.k === k);
   const off = new Set(); for (let d = 1; d <= D; d++) if (R() < 0.05 && !holRate(m, d)) off.add(d);
   E.filter(e => e.k !== 'LX').forEach(e => { for (let d = 1; d <= D; d++) { let w = 0; if (!off.has(d) && R() < 0.9) w = R() < 0.06 ? 0.5 : 1; const p = P[e.id]; p.w[d] = w; if (holRate(m, d)) p.K += w; else p.H += w; if (w >= 1) p.an++; } });
-  const fund = { DD: 0, GCN: 0, S10: 0, TP: 0 }, info = { DD: 0, GCN: 0, S10: 0, TP: 0 }, hsT = {};
+  const fund = { DD: 0, GCN: 0, S10: 0, TP: 0 }, fundL = { DD: {}, GCN: {}, S10: {}, TP: {} }, info = { DD: 0, GCN: 0, S10: 0, TP: 0 }, hsT = {};
   const credit = (id, c, d, key) => { const p = P[id], r = holRate(m, d); if (key === 'b') { if (r) { p.blc += c; p.blt += c * DG * r; } else { p.bc += c; p.bt += c * DG; } } else if (r) { p.lc += c; p.lt += c * DG * r; } else { p.sc += c; p.st += c * DG; } };
   const wDay = (k, d, f = x => x) => { const w = {}; grp(k).forEach(e => { const x = P[e.id].w[d]; if (x) w[e.id] = f(x, e); }); return w; };
   for (let d = 1; d <= D; d++) {
@@ -910,25 +963,26 @@ function computeTC(m) {
     addL('s10_ct', TC_DM.s10, d, o.ct); addL('s10_tm', TC_DM.s10tm, d, o.tm);
     // lái xe: tổng quy khô theo phiếu đội (Giao nhận mủ › Tổng tháng › Theo phiếu đội › Tổng quy khô) — cũng là sản lượng bốc xếp của ngày
     let qTot = 0;
-    grp('LX').forEach(e => { const p = P[e.id]; if (!off.has(d) && R() < 0.85) { const q = U(R, 0.7, 2.2); qTot += q; p.an++; addL('lx', F.LX_CONG, d, q); if (r) { p.ql += q; p.ltT += q * F.DG_VC * r; } else { p.qt += q; p.dT++; } }
+    grp('LX').forEach(e => { const p = P[e.id]; if (!off.has(d) && R() < 0.85) { const q = U(R, 0.7, 2.2); qTot += q; p.an++; addL('lx', F.LX_CONG, d, q); lnAdd(e.id, 'lx', q * F.LX_CONG, q * F.DG_VC * (r || 1), !!r); if (r) { p.ql += q; p.ltT += q * F.DG_VC * r; } else { p.qt += q; p.dT++; } }
       else if (!r && R() < 0.12) { p.vc += 1; p.an++; } });
     addL('bx', TC_DM.bx, d, qTot);
-    const f = { DD: o.rss * TC_DM.rss_dd + (o.s3 + o.s5) * TC_DM.s3_dd, GCN: o.rss * TC_DM.rss_gcn, S10: o.ct * TC_DM.s10 + o.tm * TC_DM.s10tm, TP: o.rss * TC_DM.rss_tp + (o.s3 + o.s5) * TC_DM.s3_tp };
+    const comp = { DD: { rss_dd: o.rss * TC_DM.rss_dd, s3_dd_3l: o.s3 * TC_DM.s3_dd, s3_dd_5: o.s5 * TC_DM.s3_dd }, GCN: { rss_gcn: o.rss * TC_DM.rss_gcn }, S10: { s10_ct: o.ct * TC_DM.s10, s10_tm: o.tm * TC_DM.s10tm }, TP: { rss_tp: o.rss * TC_DM.rss_tp, s3_tp_3l: o.s3 * TC_DM.s3_tp, s3_tp_5: o.s5 * TC_DM.s3_tp } };
+    const f = {}; for (const k in comp) f[k] = sumBy(Object.values(comp[k]), x => x);
     // bốc xếp: tấn quy khô của ngày chia theo đầu người PX SVR10-20 có công, nam 0,6 · nữ 0,4 (vd 100 t, 2 nam 1 nữ → nam 37,5 t, nữ 25 t)
     const wb = wDay('S10', d, (x, e) => (e.gender === 'nam' ? TC_DM.bxM : TC_DM.bxF));
-    Object.entries(split(qTot, wb)).forEach(([id, t]) => { P[id].bxT += t; P[id].bxN++; credit(id, t * TC_DM.bx, d, 'b'); });
-    if (r) ['DD', 'GCN', 'S10', 'TP'].forEach(k => Object.entries(split(f[k], wDay(k, d))).forEach(([id, c]) => credit(id, c, d))); // ngày lễ: quỹ ngày lễ chia theo công ngày lễ
-    else ['DD', 'GCN', 'S10', 'TP'].forEach(k => { fund[k] += f[k]; });
+    Object.entries(split(qTot, wb)).forEach(([id, t]) => { P[id].bxT += t; P[id].bxN++; credit(id, t * TC_DM.bx, d, 'b'); lnAdd(id, 'bx', t * TC_DM.bx, t * TC_DM.bx * DG * (r || 1), !!r); });
+    if (r) ['DD', 'GCN', 'S10', 'TP'].forEach(k => Object.entries(split(f[k], wDay(k, d))).forEach(([id, c]) => { credit(id, c, d); for (const ln in comp[k]) if (f[k]) lnAdd(id, ln, c * comp[k][ln] / f[k], c * comp[k][ln] / f[k] * DG * r, true); })); // ngày lễ: quỹ ngày lễ chia theo công ngày lễ
+    else ['DD', 'GCN', 'S10', 'TP'].forEach(k => { fund[k] += f[k]; for (const ln in comp[k]) fundL[k][ln] = (fundL[k][ln] || 0) + comp[k][ln]; });
   }
   const hs = e => (e.gender === 'nam' ? TC_DM.bxM : TC_DM.bxF);
   // công quy đổi = số công × hệ số tổ (hệ số = công khoán của tổ ÷ tổng công chấm của tổ)
-  ['DD', 'GCN', 'S10', 'TP'].forEach(k => { info[k] = sumBy(grp(k), e => P[e.id].H); hsT[k] = info[k] ? fund[k] / info[k] : 0; grp(k).forEach(e => { const c = P[e.id].H * hsT[k]; P[e.id].sc += c; P[e.id].st += c * DG; }); });
+  ['DD', 'GCN', 'S10', 'TP'].forEach(k => { info[k] = sumBy(grp(k), e => P[e.id].H); hsT[k] = info[k] ? fund[k] / info[k] : 0; grp(k).forEach(e => { const c = P[e.id].H * hsT[k]; P[e.id].sc += c; P[e.id].st += c * DG; if (fund[k]) for (const ln in fundL[k]) lnAdd(e.id, ln, c * fundL[k][ln] / fund[k], c * fundL[k][ln] / fund[k] * DG, false); }); });
   let vtSum = 0;
   const rows = E.map(e => {
     const p = P[e.id], t = th.rows[e.id] || {}, luong = +t.luong || 0, tv = !!t.tv;
     let r;
     if (e.k === 'LX') {
-      const vt = Math.round(luong * (tv ? F.TV : 1) / F.NC * p.vc); vtSum += vt;
+      const vt = Math.round(luong * (tv ? F.TV : 1) / F.NC * p.vc); vtSum += vt; if (p.vc) p.ln.vt = { c: p.vc, v: vt, lc: 0, lv: 0 };
       r = { so: p.dT, sc: p.qt * F.LX_CONG, st: p.qt * F.DG_VC, lc: p.ql * F.LX_CONG, lt: p.ltT, bc: 0, bt: 0, blc: 0, blt: 0, vc: p.vc, vt };
       r.parts = [{ label: 'Vận chuyển mủ ngày thường', c: r.sc, v: r.st, fx: `${f3(p.qt)} t quy khô theo phiếu đội × ${fmt(F.DG_VC)} đ/t; công = tấn × ${fdm(F.LX_CONG)}` },
         { label: 'Vận chuyển mủ ngày lễ', c: r.lc, v: r.lt, hol: true, fx: `${f3(p.ql)} t quy khô ngày lễ × ${fmt(F.DG_VC)} × hệ số lễ` },
@@ -942,7 +996,7 @@ function computeTC(m) {
     const tc = r.sc + r.lc + r.bc + r.blc + r.vc, tt = r.st + r.lt + r.bt + r.blt + r.vt, an = p.an, at = an * F.AN, tong = tt + at;
     const bh = +t.bh || 0, truy = +t.truy || 0, khac = +t.khac || 0, cd = Math.round(Math.max(0, tong - at - bh) * F.CD), thu = bh + truy + cd + khac;
     return Object.assign(r, { id: e.id, k: e.k, e, name: e.name, title: e.title + (tv ? ' (thử việc)' : ''), mst: e.mst, luong, tc, tt, an, at, tong, bh, truy, cd, khac, thu, nhan: tong - thu,
-      TL: tt, LE: r.lt + r.blt, CQD: tc, AN: an, THU: thu, NHAN: tong - thu, parts: r.parts.filter(x => Math.abs(x.v) > 0.5), th: t });
+      ln: p.ln, TL: tt, LE: r.lt + r.blt, CQD: tc, AN: an, THU: thu, NHAN: tong - thu, parts: r.parts.filter(x => Math.abs(x.v) > 0.5), th: t });
   });
   const B = k => { const o = L[k] || { dm: 0, t: 0, lt: 0, cl: 0, tl: 0 }; return Object.assign(o, { ct: o.t * o.dm, tt: o.t * o.dm * (k === 'lx' ? F.DG_VC / F.LX_CONG : DG) }); };
   // lái xe: cột công = tấn × 1,25, tiền = tấn × 251.315 (ngày lễ đã tính theo hệ số trong từng người)
@@ -959,12 +1013,12 @@ function computeTC(m) {
     ['g', 'VII', 'LƯƠNG VẬN CHUYỂN VẬT TƯ / THỬ VIỆC', null], ['v', '01', 'Lái xe chạy vật tư (theo công, mức lương ÷ 26)', null],
   ].map(x => { const [kind, stt, name, key, wt] = x;
     if (kind === 'g' || kind === 'g2') { const s = key ? key.map(k => k === 'lx' ? lx : B(k)) : [vtL]; return { kind, stt, name, dm: kind === 'g2' ? s[0].dm : null, t: sumBy(s, y => y.t), lt: sumBy(s, y => y.lt), ct: sumBy(s, y => y.ct), cl: sumBy(s, y => y.cl), tt: sumBy(s, y => y.tt), tl: sumBy(s, y => y.tl) }; }
-    if (kind === 'v') return { kind: 'r', stt, name, dvt: 'Công', ...vtL };
-    return { kind: kind === 's' ? 'sub' : 'r', stt, name, wt, ...(key === 'lx' ? lx : B(key)) }; });
+    if (kind === 'v') return { kind: 'r', key: 'vt', stt, name, dvt: 'Công', ...vtL };
+    return { kind: kind === 's' ? 'sub' : 'r', key, stt, name, wt, ...(key === 'lx' ? lx : B(key)) }; });
   return { rows, pt, ptTotal: sumBy(pt.filter(x => x.kind === 'g'), x => x.tt + x.tl) };
 }
 // Nhóm mủ của Bảng hạch toán (theo sheet Hạch toán ld của file lương Chư Sê)
-const HT_CATS = [['3L', 'SVR3L + 10 Công ty'], ['10', 'SVR10 Công ty'], ['RSS', 'Mủ RSS'], ['KHAC', 'Lái máy + khác'], ['PAL', 'Đóng pallet'], ['TM10', 'Thu mua SVR10']];
+const HT_CATS = [['3L', 'SVR3L + 10 Công ty'], ['10', 'SVR10 Công ty'], ['RSS', 'Mủ RSS'], ['KHAC', 'Lái máy + khác'], ['PAL', 'Đóng pallet'], ['TM3L', 'Thu mua SVR3L'], ['TM10', 'Thu mua SVR10']];
 const CACHE = {};
 const calc = (f, m) => { const k = f + '|' + m + '|' + THV; return CACHE[k] || (CACHE[k] = f === 'chuse' ? computeCS(m) : computeTC(m)); };
 
@@ -972,7 +1026,7 @@ const calc = (f, m) => { const k = f + '|' + m + '|' + THV; return CACHE[k] || (
 const LS = { get: (k, d) => { try { const v = localStorage.getItem('luong:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set: (k, v) => { try { localStorage.setItem('luong:' + k, JSON.stringify(v)); } catch (e) { /* bỏ qua */ } } };
 const S = { f: LS.get('fac', 'chuse'), m: LS.get('m', MONTHS[MONTHS.length - 1]), tab: LS.get('tab', 'luong'), g: '', q: '', view: 'luong', col: new Set(), slip: null, up: null };
 if (!FAC[S.f]) S.f = 'chuse'; if (!MONTHS.includes(S.m)) S.m = MONTHS[MONTHS.length - 1];
-const TABS = [{ key: 'thuho', title: 'Các khoản thu hộ', short: 'Thu hộ' }, { key: 'luong', title: 'Báo cáo lương', short: 'Lương' }];
+const TABS = [{ key: 'thuho', title: 'Các khoản khấu trừ qua lương', short: 'Khấu trừ' }, { key: 'luong', title: 'Báo cáo lương', short: 'Lương' }];
 function renderTop() {
   const F = FAC[S.f];
   $('#topbar').innerHTML = `
@@ -1003,7 +1057,7 @@ document.addEventListener('click', e => {
   if (mi) {
     $('#menu-pop').hidden = true;
     if (mi.dataset.menu === 'theme') { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; LS.set('theme', r.dataset.theme); render(); }
-    if (mi.dataset.menu === 'clear' && confirm(`Xóa toàn bộ số thu hộ đã tải lên của ${FAC[S.f].full}? Các khoản thu hộ sẽ tính bằng 0.`)) { delete TH[S.f]; thSave(); render(); toast('Đã xóa số thu hộ đã tải lên'); }
+    if (mi.dataset.menu === 'clear' && confirm(`Xóa toàn bộ số thu hộ đã tải lên của ${FAC[S.f].full}? Các khoản khấu trừ qua lương sẽ tính bằng 0.`)) { delete TH[S.f]; thSave(); render(); toast('Đã xóa số thu hộ đã tải lên'); }
     return;
   }
   if (!e.target.closest('.menu')) { const p = $('#menu-pop'); if (p) p.hidden = true; }
@@ -1022,7 +1076,34 @@ const COLS = {
 };
 const SUMK = ['TL', 'LE', 'CQD', 'AN', 'THU', 'NHAN'];
 const groupsShown = () => FAC[S.f].groups.map(g => g.k).filter(k => !S.g || S.g === k);
-const baseRows = m => { const q = noMark(S.q); return calc(S.f, m).rows.filter(r => (!S.g || r.k === S.g) && (!q || noMark(r.name + ' ' + r.mst + ' ' + r.id).includes(q))); };
+/* Bộ lọc công việc (một ô, 2 tầng: nhóm › công việc, giống Bảng phân toán): áp cho cả báo cáo.
+   Khi lọc, mỗi người chỉ còn phần lương của các dòng công việc được chọn; ăn ca, khấu trừ, số nhận để trống. */
+const jobKeys = () => (S.job ? S.job.split(',') : null);
+function jobView(r, keys) {
+  let c = 0, v = 0, lc = 0, lv = 0; const hs = { n: {}, l: {} }, part = {};
+  keys.forEach(k => { const L = r.ln && r.ln[k]; if (!L) return; c += L.c; v += L.v; lc += L.lc; lv += L.lv; part[k] = L;
+    if (L.ht) ['n', 'l'].forEach(p => { for (const cat in L.ht[p]) { const o = hs[p][cat] = hs[p][cat] || { c: 0, v: 0 }; o.c += L.ht[p][cat].c; o.v += L.ht[p][cat].v; } }); });
+  if (Math.abs(v + lv) < 0.5 && Math.abs(c + lc) < 1e-6) return null;
+  const z = { ng: 0, tg: 0, ns: 0, ts: 0, tt: 0, cd: 0, truy: 0, ung: 0, bh: 0, khac: 0, nhan: 0, an: 0, at: 0, tong: 0, thu: 0, luong: 0, so: 0 };
+  const o = Object.assign({}, r, z, { _job: true, NHAN0: r.NHAN, ht: hs, TL: v + lv, LE: lv, CQD: c + lc, AN: 0, THU: 0, NHAN: 0 });
+  if (S.f === 'chuse') Object.assign(o, { spc: c, sp: v, lec: lc, le: lv, tong: v + lv });
+  else { const sum = (ks, f) => sumBy(ks.filter(k => part[k]), k => part[k][f]), cb = Object.keys(part).filter(k => k !== 'bx' && k !== 'vt');
+    Object.assign(o, { sc: sum(cb, 'c'), st: sum(cb, 'v'), lc: sum(cb, 'lc'), lt: sum(cb, 'lv'), bc: sum(['bx'], 'c'), bt: sum(['bx'], 'v'), blc: sum(['bx'], 'lc'), blt: sum(['bx'], 'lv'), vc: sum(['vt'], 'c'), vt: sum(['vt'], 'v'), tc: c + lc, tt: v + lv }); }
+  return o;
+}
+const baseRows = m => { const q = noMark(S.q), keys = jobKeys(); let rows = calc(S.f, m).rows.filter(r => (!S.g || r.k === S.g) && (!q || noMark(r.name + ' ' + r.mst + ' ' + r.id).includes(q)));
+  if (keys) rows = rows.map(r => jobView(r, keys)).filter(Boolean); return rows; };
+// danh sách chọn công việc lấy theo cấu trúc Bảng phân toán của nhà máy
+function jobOptions() {
+  const pt = calc(S.f, S.m).pt, out = []; let g = null, g2 = null;
+  const leafs = (from, stopKinds) => { const ks = []; for (let i = from + 1; i < pt.length && !stopKinds.includes(pt[i].kind); i++) if (pt[i].key && (pt[i].kind === 'r' || pt[i].kind === 'sub')) ks.push(pt[i].key); return ks; };
+  pt.forEach((o, i) => {
+    if (o.kind === 'g') { g = out.length; out.push({ v: leafs(i, ['g', 'sec']).join(','), l: `${o.stt}. ${o.name}`, lv: 1 }); }
+    else if (o.kind === 'g2') out.push({ v: leafs(i, ['g', 'g2', 'sec', 'r']).join(','), l: `${o.stt} ${o.name}`, lv: 2 });
+    else if ((o.kind === 'r' || o.kind === 'sub') && o.key && g != null) out.push({ v: o.key, l: o.kind === 'sub' ? `· ${o.name}` : `${o.stt} ${o.name}`, lv: o.kind === 'sub' ? 3 : 2 });
+  });
+  return out.filter(x => x.v);
+}
 const sumR = (rows, keys) => { const o = {}; keys.forEach(k => { o[k] = sumBy(rows, r => r[k]); }); return o; };
 const prevM = () => { const i = MONTHS.indexOf(S.m); return i > 0 ? MONTHS[i - 1] : null; };
 const holShort = m => (holOf(m).length ? 'Ngày lễ: ' + holOf(m).map(h => `${String(h.d).padStart(2, '0')}/${m.slice(5)} ×${h.r}`).join(', ') : '');
@@ -1030,29 +1111,32 @@ const holInfo = m => holOf(m).length ? 'Ngày lễ: ' + holOf(m).map(h => `<b st
 
 function luongHTML() {
   if (S.view === 'ht' && S.f !== 'chuse') S.view = 'luong';
+  if (S.job && !jobOptions().some(o => o.v === S.job)) S.job = null;
   const F = FAC[S.f], th = thGet(S.f, S.m);
   const thBanner = th.src === 'file'
-    ? `<div class="banner"><span>Bảo hiểm và các khoản thu hộ tháng ${mLbl(S.m)} lấy từ file <b>${esc(th.file)}</b>, cập nhật ${esc(new Date(th.at).toLocaleString('vi-VN'))}.</span><button class="lnk" data-tab="thuho">Xem ở tab Các khoản thu hộ</button></div>`
-    : th.src === 'mau' ? `<div class="banner warn"><span>Bảo hiểm và các khoản thu hộ tháng ${mLbl(S.m)} đang là số mẫu để xem thử.</span><button class="lnk" data-tab="thuho">Cập nhật ở tab Các khoản thu hộ</button></div>`
-    : `<div class="banner warn"><span>Chưa có thông tin bảo hiểm tháng ${mLbl(S.m)}: BHXH, truy thu, thu khác đang tính bằng 0${S.f === 'thanhcong' ? ', lương vận chuyển vật tư chưa ra tiền vì chưa có mức lương' : ''}.</span><button class="lnk" data-tab="thuho">Tải form ở tab Các khoản thu hộ</button></div>`;
+    ? `<div class="banner"><span>Bảo hiểm và các khoản thu hộ tháng ${mLbl(S.m)} lấy từ file <b>${esc(th.file)}</b>, cập nhật ${esc(new Date(th.at).toLocaleString('vi-VN'))}.</span><button class="lnk" data-tab="thuho">Xem ở tab Các khoản khấu trừ qua lương</button></div>`
+    : th.src === 'mau' ? `<div class="banner warn"><span>Bảo hiểm và các khoản thu hộ tháng ${mLbl(S.m)} đang là số mẫu để xem thử.</span><button class="lnk" data-tab="thuho">Cập nhật ở tab Các khoản khấu trừ qua lương</button></div>`
+    : `<div class="banner warn"><span>Chưa có thông tin bảo hiểm tháng ${mLbl(S.m)}: BHXH, truy thu, thu khác đang tính bằng 0${S.f === 'thanhcong' ? ', lương vận chuyển vật tư chưa ra tiền vì chưa có mức lương' : ''}.</span><button class="lnk" data-tab="thuho">Tải form ở tab Các khoản khấu trừ qua lương</button></div>`;
   return `
   <div class="pane-head"><div><h2>Báo cáo lương công nhân <span class="chip warn" title="Số sản lượng, chấm công sinh mẫu theo công thức đã chốt">Dữ liệu mẫu</span></h2>
     <p>${esc(F.full)}, tháng ${mLbl(S.m)}. Bấm vào biểu đồ để chọn tháng hoặc bộ phận, bấm tên người trong bảng lương để xem phiếu lương và tài khoản nhận tiền.</p></div>
-    <div class="toolbar"><label class="small muted" for="pl-grp">Bộ phận</label><select id="pl-grp"><option value="">Tất cả</option>${F.groups.map(g => `<option value="${g.k}"${S.g === g.k ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</select>
+    <div class="toolbar"><span class="small muted">Bộ phận</span>${ddHTML('grp')}
+      <span class="small muted">Công việc</span>${ddHTML('job')}
       <input id="pl-q" type="search" placeholder="Tìm họ tên, mã NV, mã số thuế" aria-label="Tìm người" value="${esc(S.q)}" style="width:230px"></div></div>
   ${thBanner}
+  <div id="pl-jobb"></div>
   <div class="pl-kpis" id="pl-kpis"></div>
   <div class="pl-row">
-    <section class="pl-card"><h3>Biến động tổng tiền lương theo tháng</h3><div class="sub">Cột: tổng tiền lương xếp chồng theo bộ phận. Đường phía trên: bình quân mỗi người (triệu đ)</div>
+    <section class="pl-card"><div class="pl-card-h"><h3 id="pl-tr-h">Biến động tổng tiền lương</h3><span class="pl-seg2" id="pl-tr-mode"><button data-tm="m" aria-pressed="${S.tm !== 'lk'}">Theo tháng</button><button data-tm="lk" aria-pressed="${S.tm === 'lk'}">Lũy kế</button></span></div><div class="sub" id="pl-tr-sub"></div>
       <div class="pl-cb"><div class="pl-legend" id="pl-legend"></div><div id="pl-trend"></div></div></section>
     <section class="pl-card"><h3>Cơ cấu tổng tiền lương theo bộ phận</h3><div class="sub">Tháng ${mLbl(S.m)}, bấm phần để lọc theo bộ phận</div>
       <div class="pl-cb"><div class="pl-donut"><div id="pl-donut"></div><div class="pl-dl" id="pl-dl"></div></div></div></section>
   </div>
   <section class="pl-sheet">
     <div class="pl-sheet-h">
-      <div class="tabs" role="tablist" aria-label="Chọn bảng"><button role="tab" data-view="luong" aria-selected="${S.view === 'luong'}">Bảng lương</button><button role="tab" data-view="pt" aria-selected="${S.view === 'pt'}">Bảng phân toán</button>${S.f === 'chuse' ? `<button role="tab" data-view="ht" aria-selected="${S.view === 'ht'}">Bảng hạch toán</button>` : ''}</div>
+      <div class="tabs" role="tablist" aria-label="Chọn bảng"><button role="tab" data-view="luong" aria-selected="${S.view === 'luong'}">Bảng lương</button><button role="tab" data-view="pt" aria-selected="${S.view === 'pt'}">Bảng phân toán</button>${S.f === 'chuse' ? `<button role="tab" data-view="ht" aria-selected="${S.view === 'ht'}">Bảng hạch toán</button>` : ''}<button role="tab" data-view="ck" aria-selected="${S.view === 'ck'}">Bảng chuyển khoản</button></div>
       <span id="pl-sub"></span><span class="grow"></span><span id="pl-t-title" hidden></span><span class="small muted" id="pl-t-info"></span>
-      <button class="lnk" id="pl-toggle" type="button">Thu gọn tất cả</button><button class="btn sm primary" id="pl-xlsx" type="button">↓ Xuất Excel</button>
+      <button class="lnk" id="pl-toggle" type="button">Thu gọn tất cả</button><button class="btn sm" id="pl-print" type="button">In phiếu</button><button class="btn sm primary" id="pl-xlsx" type="button">↓ Xuất Excel</button>
     </div>
     <div class="pl-sw"><div class="pl-scroll" data-sk="pl"><table class="pl-t" id="pl-t"></table></div></div>
   </section>
@@ -1060,7 +1144,7 @@ function luongHTML() {
 }
 function luongAfter() {
   renderKpis(); renderTrend(); renderDonut(); renderTable();
-  $('#pl-grp').addEventListener('change', e => setGroup(e.target.value));
+  $('#pl-tr-mode').addEventListener('click', e => { const b = e.target.closest('[data-tm]'); if (!b) return; S.tm = b.dataset.tm; document.querySelectorAll('[data-tm]').forEach(x => x.setAttribute('aria-pressed', x === b)); untip(); renderTrend(); });
   let qt; $('#pl-q').addEventListener('input', e => { clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value; renderKpis(); renderTrend(); renderDonut(); renderTable(); }, 200); });
   document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { S.view = b.dataset.view; document.querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-selected', x === b)); renderTable(); }));
   $('#pl-sub').addEventListener('click', e => { const b = e.target.closest('[data-htp]'); if (b) { S.htp = b.dataset.htp; renderTable(); } });
@@ -1069,8 +1153,54 @@ function luongAfter() {
   document.querySelector('.pl-scroll').addEventListener('scroll', e => { const sc = e.target; sc.parentNode.classList.toggle('more', sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 2); });
   $('#pl-toggle').addEventListener('click', () => { if (S.col.size >= groupsShown().length) S.col.clear(); else groupsShown().forEach(k => S.col.add(k)); renderTable(); });
   $('#pl-xlsx').addEventListener('click', exportTable);
+  $('#pl-print').addEventListener('click', () => { const keep = new Set(S.col); printAs('pl-print-table', () => { S.col.clear(); renderTable(); }); S.col = keep; renderTable(); });
 }
-function setGroup(k) { S.g = k; const s = $('#pl-grp'); if (s) s.value = k; renderKpis(); renderTrend(); renderDonut(); renderTable(); }
+function setGroup(k) { S.g = k; ddSync('grp'); renderKpis(); renderTrend(); renderDonut(); renderTable(); }
+
+/* Ô chọn có tìm kiếm (Bộ phận) và cây thu gọn / mở rộng (Công việc) */
+const DD = {
+  grp: { ph: 'Tìm bộ phận…', items: () => [{ v: '', l: 'Tất cả bộ phận', lv: 1 }].concat(FAC[S.f].groups.map(g => ({ v: g.k, l: g.name, lv: 1 }))), val: () => S.g || '', set: v => setGroup(v) },
+  job: { ph: 'Tìm công việc…', tree: true, items: () => [{ v: '', l: 'Tất cả công việc', lv: 1 }].concat(jobOptions()), val: () => S.job || '',
+    set: v => { S.job = v || null; untip(); renderKpis(); renderTrend(); renderDonut(); renderTable(); } },
+};
+const ddExp = {}; // nhóm đang mở rộng trong cây công việc, theo nhà máy
+const ddItems = k => { const it = DD[k].items(), last = {}; it.forEach((x, i) => { x.i = i; x.par = x.lv > 1 ? last[x.lv - 1] : null; last[x.lv] = i; x.kids = false; if (x.par != null) it[x.par].kids = true; }); return it; };
+const ddLabel = k => { const it = ddItems(k), x = it.find(o => o.v === DD[k].val()); return !x ? '' : x.lv === 3 && x.par != null ? `${it[x.par].l} ${x.l}` : x.l; };
+const ddHTML = k => `<div class="dd" id="dd-${k}"><button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"><span class="dd-v">${esc(ddLabel(k))}</span><span class="dd-car" aria-hidden="true">▾</span></button>
+  <div class="dd-pop" hidden><div class="dd-top"><input class="dd-q" type="search" placeholder="${DD[k].ph}" aria-label="${DD[k].ph}">${DD[k].tree ? '<button type="button" class="lnk small" data-dd-all="1">Mở rộng tất cả</button>' : ''}</div><div class="dd-list" role="listbox"></div></div></div>`;
+function ddSync(k) { const el = document.getElementById('dd-' + k); if (el) el.querySelector('.dd-v').textContent = ddLabel(k); }
+function ddRender(k) {
+  const el = document.getElementById('dd-' + k), q = noMark(el.querySelector('.dd-q').value), it = ddItems(k), cur = DD[k].val(), ex = ddExp[S.f] = ddExp[S.f] || new Set();
+  // mở sẵn nhóm chứa mục đang chọn
+  if (DD[k].tree && cur) { let x = it.find(o => o.v === cur); while (x && x.par != null) { ex.add(it[x.par].v); x = it[x.par]; } }
+  const hit = new Set(); if (q) it.forEach(x => { if (noMark(x.l).includes(q)) { hit.add(x.i); let p = x.par; while (p != null) { hit.add(p); p = it[p].par; } } });
+  const vis = x => { if (q) { if (hit.has(x.i)) return true; let p = x.par; while (p != null) { if (hit.has(p) && noMark(it[p].l).includes(q)) return true; p = it[p].par; } return false; }
+    let p = x.par; while (p != null) { if (!ex.has(it[p].v)) return false; p = it[p].par; } return true; };
+  const rows = it.filter(vis);
+  el.querySelector('.dd-list').innerHTML = rows.length ? rows.map(x => { const open = q ? true : ex.has(x.v);
+    return `<div class="dd-it lv${x.lv}${x.v === cur ? ' on' : ''}" role="option" aria-selected="${x.v === cur}" data-v="${esc(x.v)}">${DD[k].tree ? (x.kids ? `<button type="button" class="dd-tg" data-tg="${esc(x.v)}" aria-label="${open ? 'Thu gọn' : 'Mở rộng'}" aria-expanded="${open}">${open ? '▾' : '▸'}</button>` : '<span class="dd-tg sp"></span>') : ''}<span class="dd-l">${esc(x.l)}</span></div>`; }).join('')
+    : '<div class="dd-empty">Không tìm thấy</div>';
+  const all = el.querySelector('[data-dd-all]'); if (all) { const groups = it.filter(x => x.kids); all.textContent = groups.every(x => ex.has(x.v)) ? 'Thu gọn tất cả' : 'Mở rộng tất cả'; all.hidden = !!q; }
+}
+function ddOpen(k, on) {
+  document.querySelectorAll('.dd').forEach(d => { if (d.id !== 'dd-' + k || !on) { d.querySelector('.dd-pop').hidden = true; d.querySelector('.dd-btn').setAttribute('aria-expanded', 'false'); } });
+  if (!on) return; const el = document.getElementById('dd-' + k); el.querySelector('.dd-pop').hidden = false; el.querySelector('.dd-btn').setAttribute('aria-expanded', 'true');
+  const qi = el.querySelector('.dd-q'); qi.value = ''; ddRender(k); qi.focus();
+}
+document.addEventListener('click', e => {
+  const d = e.target.closest('.dd'); if (!d) { ddOpen(null, false); return; }
+  const k = d.id.slice(3);
+  if (e.target.closest('.dd-btn')) { ddOpen(k, d.querySelector('.dd-pop').hidden); return; }
+  const tg = e.target.closest('[data-tg]'); if (tg) { const ex = ddExp[S.f]; ex.has(tg.dataset.tg) ? ex.delete(tg.dataset.tg) : ex.add(tg.dataset.tg); ddRender(k); return; }
+  if (e.target.closest('[data-dd-all]')) { const ex = ddExp[S.f], g = ddItems(k).filter(x => x.kids); if (g.every(x => ex.has(x.v))) ex.clear(); else g.forEach(x => ex.add(x.v)); ddRender(k); return; }
+  const it = e.target.closest('.dd-it'); if (it) { DD[k].set(it.dataset.v); ddSync(k); ddOpen(k, false); }
+});
+document.addEventListener('input', e => { if (e.target.classList.contains('dd-q')) ddRender(e.target.closest('.dd').id.slice(3)); });
+document.addEventListener('keydown', e => {
+  const d = e.target.closest && e.target.closest('.dd'); if (!d) return; const k = d.id.slice(3);
+  if (e.key === 'Escape') { ddOpen(k, false); d.querySelector('.dd-btn').focus(); }
+  if (e.key === 'Enter' && e.target.classList.contains('dd-q')) { e.preventDefault(); const q = noMark(e.target.value), x = q ? ddItems(k).find(o => noMark(o.l).includes(q)) : null; if (x) { DD[k].set(x.v); ddSync(k); ddOpen(k, false); } }
+});
 
 /* KPI */
 function renderKpis() {
@@ -1082,16 +1212,31 @@ function renderKpis() {
     ['', 'Lương ngày lễ', fmt(t.LE), holOf(S.m).length ? (t.TL ? pct(t.LE / t.TL * 100) + ' tổng tiền lương' : '–') : 'Tháng không có ngày lễ'],
     ['', 'Bình quân mỗi người', fmt(avg), pavg ? dTxt(chg(avg, pavg)) + vs : ''],
     ['', 'Công quy đổi', fc(t.CQD), fmt(t.AN) + ' công ăn ca'],
-    ['', 'Các khoản thu hộ', fmt(t.THU), S.f === 'chuse' ? 'BHXH, truy thu, ĐPCĐ, khác' : 'BHXH, truy thu, ĐPCĐ, khác'],
+    ['', 'Các khoản khấu trừ qua lương', fmt(t.THU), S.f === 'chuse' ? 'BHXH, truy thu, ĐPCĐ, khác' : 'BHXH, truy thu, ĐPCĐ, khác'],
     ['', 'Số người', fmt(r.length), groupsShown().length + ' bộ phận'],
   ];
+  if (jobKeys()) {
+    const lb = ddLabel('job');
+    $('#pl-jobb').innerHTML = `<div class="banner"><span>Đang lọc công việc <b>${esc(lb)}</b>: số liệu chỉ gồm phần lương của công việc này; ăn ca, khấu trừ và số nhận để trống.</span><button class="lnk" id="pl-job-x">Bỏ lọc</button></div>`;
+    $('#pl-job-x').onclick = () => { S.job = null; ddSync('job'); $('#pl-jobb').innerHTML = ''; renderKpis(); renderTrend(); renderDonut(); renderTable(); };
+    K.splice(0, K.length,
+      ['main', 'Tiền lương công việc', fmt(t.TL), pt ? dTxt(chg(t.TL, pt.TL)) + vs : ''],
+      ['', 'Lương ngày lễ', fmt(t.LE), holOf(S.m).length ? (t.TL ? pct(t.LE / t.TL * 100) + ' tiền lương công việc' : '–') : 'Tháng không có ngày lễ'],
+      ['', 'Bình quân mỗi người', fmt(avg), pavg ? dTxt(chg(avg, pavg)) + vs : ''],
+      ['', 'Công quy đổi', fc(t.CQD), ''],
+      ['', 'Số người có làm', fmt(r.length), new Set(r.map(x => x.k)).size + ' bộ phận']);
+  } else $('#pl-jobb').innerHTML = '';
   $('#pl-kpis').innerHTML = K.map(([c, k, v, d]) => `<div class="pl-kpi ${c}"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 }
 /* Xu hướng */
 function renderTrend() {
   const box = $('#pl-trend'); if (!box) return;
   const W = Math.max(box.clientWidth, 320), H = 290, pl = 46, pr = 10, pt = 26, pb = 34, gs = groupsShown();
-  const data = MONTHS.map(m => { const r = baseRows(m); const v = gs.map(k => sumBy(r.filter(x => x.k === k), x => x.TL)); const tot = v.reduce((a, b) => a + b, 0); return { m, v, tot, avg: r.length ? tot / r.length : 0 }; });
+  const lk = S.tm === 'lk';
+  let data = MONTHS.map(m => { const r = baseRows(m); const v = gs.map(k => sumBy(r.filter(x => x.k === k), x => x.TL)); const tot = v.reduce((a, b) => a + b, 0); return { m, v, tot, avg: r.length ? tot / r.length : 0 }; });
+  // lũy kế trong năm: cộng dồn từ tháng đầu năm có số liệu tới từng tháng
+  if (lk) { let acc = null, accAvg = 0, yr = ''; data = data.map(d => { if (d.m.slice(0, 4) !== yr) { yr = d.m.slice(0, 4); acc = gs.map(() => 0); accAvg = 0; } acc = acc.map((x, j) => x + d.v[j]); accAvg += d.avg; return { m: d.m, v: acc.slice(), tot: acc.reduce((a, b) => a + b, 0), avg: accAvg }; }); }
+  $('#pl-tr-sub').textContent = lk ? 'Cột: tổng tiền lương cộng dồn từ đầu năm, xếp chồng theo bộ phận. Đường phía trên: bình quân mỗi người cộng dồn (triệu đ)' : 'Cột: tổng tiền lương xếp chồng theo bộ phận. Đường phía trên: bình quân mỗi người (triệu đ)';
   const A = niceTop(Math.max(...data.map(d => d.tot), 1) * 1.38), y = v => pt + (H - pt - pb) * (1 - v / A.top);
   const hi = Math.max(...data.map(d => d.avg), 1), lo = Math.min(...data.map(d => d.avg)), band = (H - pt - pb) * 0.2, y2 = v => pt + 4 + band * (1 - (v - lo) / ((hi - lo) || 1));
   const bw = (W - pl - pr) / data.length, barW = Math.min(52, bw * 0.56);
@@ -1100,7 +1245,7 @@ function renderTrend() {
   s += `<text x="${pl - 6}" y="10" text-anchor="end" font-size="10.5" fill="var(--muted)">triệu đ</text>`;
   data.forEach((d, i) => {
     const cx = pl + bw * i + bw / 2, sel = d.m === S.m, hol = holOf(d.m).length;
-    const tt = `<b>Tháng ${mLbl(d.m)}</b>: ${fmt(d.tot)} đ<br>` + gs.map((k, j) => `${esc(gName(S.f, k))}: ${fmt(d.v[j])} (${pct(d.tot ? d.v[j] / d.tot * 100 : 0)})`).join('<br>') + `<br>Bình quân/người: ${fmt(d.avg)} đ`;
+    const tt = `<b>${lk ? 'Lũy kế đến' : 'Tháng'} ${mLbl(d.m)}</b>: ${fmt(d.tot)} đ<br>` + gs.map((k, j) => `${esc(gName(S.f, k))}: ${fmt(d.v[j])} (${pct(d.tot ? d.v[j] / d.tot * 100 : 0)})`).join('<br>') + `<br>Bình quân/người${lk ? ' lũy kế' : ''}: ${fmt(d.avg)} đ`;
     s += `<g class="hit" data-m="${d.m}" data-tip="${esc(tt)}"><rect x="${pl + bw * i + 2}" y="${pt - 18}" width="${bw - 4}" height="${H - pt - pb + 18}" rx="4" fill="${sel ? 'var(--accent-soft)' : 'transparent'}"/>`;
     let acc = 0; d.v.forEach((v, j) => { if (!v) return; s += `<rect x="${cx - barW / 2}" y="${y(acc + v)}" width="${barW}" height="${Math.max(0, y(acc) - y(acc + v))}" fill="${GCOL[gs[j]]}"/>`; acc += v; });
     s += `<text x="${cx}" y="${y(d.tot) - 6}" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--fg)">${fM(d.tot)}</text><text x="${cx}" y="${H - 16}" text-anchor="middle" font-size="12" fill="${sel ? 'var(--fg)' : 'var(--muted)'}" font-weight="${sel ? 700 : 400}">${mLbl(d.m)}</text>`;
@@ -1112,7 +1257,7 @@ function renderTrend() {
   pts.forEach((p, i) => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="var(--surface)" stroke="var(--fg)" stroke-width="2" pointer-events="none"/><text x="${p[0]}" y="${p[1] - 8}" text-anchor="middle" font-size="11" fill="var(--muted)" pointer-events="none">${fM(data[i].avg)}</text>`; });
   box.innerHTML = s + '</svg>'; bindTips(box);
   box.querySelectorAll('[data-m]').forEach(el => el.addEventListener('click', () => setMonth(el.dataset.m)));
-  $('#pl-legend').innerHTML = gs.map(k => `<span style="--c:${GCOL[k]}">${esc(gName(S.f, k))}</span>`).join('') + '<span class="line" style="--c:var(--fg)">Bình quân/người</span>';
+  $('#pl-legend').innerHTML = gs.filter((k, j) => data.some(d => d.v[j])).map(k => `<span style="--c:${GCOL[k]}">${esc(gName(S.f, k))}</span>`).join('') + `<span class="line" style="--c:var(--fg)">Bình quân/người${lk ? ' lũy kế' : ''}</span>`;
 }
 /* Cơ cấu */
 function arc(cx, cy, r, ri, a0, a1) { const L = a1 - a0 > Math.PI ? 1 : 0, p = (a, rr) => [cx + rr * Math.sin(a), cy - rr * Math.cos(a)]; const [x0, y0] = p(a0, r), [x1, y1] = p(a1, r), [x2, y2] = p(a1, ri), [x3, y3] = p(a0, ri); return `M${x0} ${y0}A${r} ${r} 0 ${L} 1 ${x1} ${y1}L${x2} ${y2}A${ri} ${ri} 0 ${L} 0 ${x3} ${y3}Z`; }
@@ -1172,26 +1317,62 @@ function renderLuong() {
 function renderPt() {
   const c = calc(S.f, S.m), F = RT(S.f, S.m), hol = holOf(S.m);
   $('#pl-t-title').textContent = `Bảng phân toán tiền lương sản phẩm tháng ${mLbl(S.m)}`;
-  const totPay = sumBy(c.rows, r => r.TL), diff = c.ptTotal - totPay;
-  $('#pl-sub').innerHTML = ''; $('#pl-t-info').innerHTML = Math.abs(diff) < 1 ? '<span class="okc" title="Tổng phân toán bằng tổng tiền lương của bảng lương">✓ Khớp bảng lương</span>' : `<span class="bad">Lệch bảng lương ${fmt(diff)} đ</span>`;
+  const totPay = sumBy(c.rows, r => r.TL), diff = c.ptTotal - totPay + (S.f === 'chuse' ? (c.ptAn || 0) - sumBy(c.rows, r => r.tg + r.ts) : 0);
+  // bộ lọc công việc (ô chọn trên đầu báo cáo): giữ dòng nhóm có chứa công việc được chọn và các dòng đó
+  const keys = jobKeys(), filtered = !!keys, sel = new Set(keys || []);
+  const shown = !filtered ? c.pt : c.pt.filter((o, i) => {
+    if (o.kind === 'r' || o.kind === 'sub') return sel.has(o.key);
+    if (o.kind === 'g' || o.kind === 'g2') { for (let j = i + 1; j < c.pt.length && !['g', 'sec'].includes(c.pt[j].kind) && !(o.kind === 'g2' && ['g2', 'r'].includes(c.pt[j].kind)); j++) if (sel.has(c.pt[j].key)) return true; return false; }
+    return false; });
+  $('#pl-sub').innerHTML = '';
+  const fr = baseRows(S.m), fdiff = sumBy(c.pt.filter(o => sel.has(o.key)), o => o.tt + o.tl) - sumBy(fr, r => r.TL);
+  $('#pl-t-info').innerHTML = (filtered ? Math.abs(fdiff) < 1 && !S.g && !S.q : Math.abs(diff) < 1) ? '<span class="okc" title="Tổng phân toán bằng tổng tiền lương của bảng lương">✓ Khớp bảng lương</span>' : filtered ? '' : `<span class="bad">Lệch bảng lương ${fmt(diff)} đ</span>`;
   const dmTxt = o => o.dmLbl != null ? o.dmLbl : (o.dm ? fdm(o.dm) : '');
   const row = o => {
     const dvt = o.dvt || 'Tấn';
+    if (o.kind === 'sec') return `<tr class="g sec"><td class="s1">${o.stt}</td><td class="s2">${esc(o.name)}</td><td></td><td></td><td></td><td class="n">${o.ct ? fc(o.ct) : ''}</td><td class="n">${o.onlyTotal ? '' : fmt(o.tt)}</td><td></td><td></td><td class="n hol">${o.cl ? fc(o.cl) : ''}</td><td class="n hol">${o.tl ? fmt(o.tl) : ''}</td><td class="n pay">${fmt(o.tt + o.tl)}</td></tr>`;
     if (o.kind === 'w') return `<tr class="p"><td class="s1">${o.stt}</td><td class="s2">${esc(o.name)}<span class="pl-wt">${esc(o.wt)}</span></td><td style="text-align:center">Tấn</td>${'<td></td>'.repeat(9)}</tr>`;
     const cls = o.kind === 'g' ? 'g' : o.kind === 'g2' ? 'g2' : 'p', sub = o.kind === 'sub';
     return `<tr class="${cls}"><td class="s1">${o.stt}</td><td class="s2${sub ? ' sub' : ''}">${esc(o.name)}${o.wt ? `<span class="pl-wt">${esc(o.wt)}</span>` : ''}</td><td style="text-align:center">${o.kind === 'g' ? '' : dvt}</td>
       <td class="n">${o.t ? f3(o.t) : ''}</td><td class="n">${dmTxt(o)}</td><td class="n">${o.ct ? fc(o.ct) : ''}</td><td class="n">${o.tt ? fmt(o.tt) : ''}</td>
       <td class="n hol">${o.lt ? f3(o.lt) : ''}</td><td class="n hol">${o.lt ? dmTxt(o) : ''}</td><td class="n hol">${o.cl ? fc(o.cl) : ''}</td><td class="n hol">${o.tl ? fmt(o.tl) : ''}</td><td class="n pay">${o.tt + o.tl ? fmt(o.tt + o.tl) : ''}</td></tr>`;
   };
-  const G = c.pt.filter(x => x.kind === 'g');
+  const G = filtered ? shown.filter(x => (x.kind === 'r' || x.kind === 'sub')) : c.pt.filter(x => x.kind === (S.f === 'chuse' ? 'sec' : 'g')), an = filtered ? 0 : (c.ptAn || 0);
   $('#pl-t').innerHTML = `<thead>
 <tr><th class="s1" rowspan="2">STT</th><th class="s2" rowspan="2" style="min-width:300px">Công việc</th><th rowspan="2">ĐVT</th><th colspan="4">Ngày thường</th><th colspan="4" class="hh">Ngày lễ</th><th rowspan="2">Tổng tiền lương</th></tr>
 <tr><th>Sản lượng</th><th>Định mức</th><th>Công</th><th>Tiền</th><th class="hh">Sản lượng</th><th class="hh">Định mức</th><th class="hh">Công</th><th class="hh">Tiền</th></tr>
-</thead><tbody>${c.pt.map(row).join('')}<tr class="tot"><td class="s1"></td><td class="s2">CỘNG</td><td></td><td></td><td></td><td class="n">${fc(sumBy(G, x => x.ct))}</td><td class="n">${fmt(sumBy(G, x => x.tt))}</td><td></td><td></td><td class="n">${fc(sumBy(G, x => x.cl))}</td><td class="n">${fmt(sumBy(G, x => x.tl))}</td><td class="n">${fmt(c.ptTotal)}</td></tr></tbody>`;
+</thead><tbody>${shown.map(row).join('')}<tr class="tot"><td class="s1"></td><td class="s2">CỘNG</td><td></td><td></td><td></td><td class="n">${fc(sumBy(G, x => x.ct))}</td><td class="n">${fmt(sumBy(G, x => (x.onlyTotal ? 0 : x.tt)))}</td><td></td><td></td><td class="n">${fc(sumBy(G, x => x.cl))}</td><td class="n">${fmt(sumBy(G, x => x.tl))}</td><td class="n">${fmt(filtered ? sumBy(G, x => x.tt + x.tl) : c.ptTotal + an)}</td></tr></tbody>`;
   $('#pl-note').innerHTML = S.f === 'chuse'
-    ? `Thành tiền = sản lượng × định mức × đơn giá của phân hệ (${fmt(F.DG)} đ); ngày lễ nhân thêm hệ số lễ. Nguồn sản lượng trong app: Giao nhận mủ › Tổng tháng theo lái xe (quy khô), phiếu nhập kho thành phẩm theo ngày (chế biến, CKCĐ + NT, chà thùng, xe nâng), Cán ủ › sản lượng ngày theo nhóm, Xe nâng › lái máy xuất hàng nhập cuối tháng. Mục IV: CB mủ RSS ${fdm(F.DM.cbRSS)}; vận chuyển mủ RSS Công ty ${fdm(F.DM.lxR)}, Ia Lâu ${fdm(F.DM.ilR)} (tấn RSS chia cho lái xe theo phần mủ nước từng xe chở). Không tính lái máy xuống mủ thu mua ở trạm cân.`
+    ? `Định mức mỗi dòng = tổng định mức các vị trí làm sản phẩm đó trong Danh mục (vd SVR3L ${fdm(F.DM.cb3L + F.DM.dd3L + F.DM.ck3L + F.DM.ct3L)} = chế biến ${fdm(F.DM.cb3L)} + đánh đông ${fdm(F.DM.dd3L)} + CKCĐ ${fdm(F.DM.ck3L)} + chà thùng ${fdm(F.DM.ct3L)}; SVR10 dây chuyền 1,5 tấn có thêm cán ủ ${fdm(F.DM.cu)}). Tiền = công × đơn giá (${fmt(F.DG)} đ), ngày lễ nhân hệ số lễ. A khớp cột Tổng lương, CỘNG khớp Tổng thanh toán của bảng lương (B = tiền ăn giữa ca + ca sáng).`
     : `Thành tiền = sản lượng × định mức × ${fmt(F.DG)}; ngày lễ nhân thêm hệ số lễ. Lái xe: tấn quy khô × ${fmt(F.DG_VC)}, cột công = tấn × ${fdm(F.LX_CONG)}. Định mức cố định như đang tính, SVR3L/SVR5 và SVR10 Công ty/Thu mua tách dòng. Bốc xếp lấy tổng quy khô theo phiếu đội của lái xe (Giao nhận mủ › Tổng tháng). Dòng VII không qua định mức, cộng vào để tổng phân toán khớp bảng lương.`;
 }
+/* Bảng chuyển khoản lương (mẫu ngân hàng của từng nhà máy): số tiền = số còn nhận / thực nhận trên bảng lương */
+function renderCk() {
+  const r = baseRows(S.m), F = FAC[S.f], cs = S.f === 'chuse', mm = S.m.slice(5), yy = S.m.slice(0, 4);
+  const nd = F.ck.replace('{mm}', mm).replace('{yyyy}', yy);
+  $('#pl-t-title').textContent = `Bảng chuyển khoản tiền lương, ăn giữa ca tháng ${mLbl(S.m)}`; $('#pl-sub').innerHTML = '';
+  ORDER = r.map(x => x.id);
+  const amt = x => (x._job ? x.NHAN0 : x.NHAN); r.forEach(x => { x.CK = amt(x); });
+  const pay = r.filter(x => x.CK > 0), ok = pay.filter(x => x.e.bankAcc), miss = pay.filter(x => !x.e.bankAcc);
+  const nm = x => `<a class="nm" data-id="${x.id}" tabindex="0">${esc(x.name)}</a>`;
+  const acc = x => `<td class="mono txt">${esc(x.e.bankAcc || '')}</td>`;
+  let head, body, foot;
+  if (cs) {
+    head = `<thead><tr><th class="s1">STT</th><th>Số tài khoản thẻ</th><th class="s2" style="position:static">Họ tên</th><th style="min-width:150px">Tiền lương, ăn giữa ca<br>tháng ${mm}/${yy}</th><th>Tổng cộng</th><th>Nội dung</th><th>Ngân hàng thụ hưởng<br>(chi nhánh)</th></tr></thead>`;
+    body = ok.map((x, i) => `<tr class="p"><td class="s1">${i + 1}</td>${acc(x)}<td>${nm(x)}</td><td class="n">${fmt(x.CK)}</td><td class="n pay">${fmt(x.CK)}</td><td class="small">${esc(nd)}</td><td>${esc(x.e.bank)}</td></tr>`).join('');
+    foot = `<tr class="tot"><td class="s1"></td><td></td><td>Tổng</td><td class="n">${fmt(sumBy(ok, x => x.CK))}</td><td class="n">${fmt(sumBy(ok, x => x.CK))}</td><td></td><td></td></tr>`;
+  } else {
+    head = `<thead><tr><th class="s1">STT</th><th class="s2">Họ tên</th><th>Chức vụ</th><th>Tiền lương</th><th>Nội dung</th><th>Số tài khoản thẻ</th><th>Tại ngân hàng</th></tr></thead>`;
+    body = ok.map((x, i) => `<tr class="p"><td class="s1 txt">${String(i + 1).padStart(2, '0')}</td><td class="s2">${nm(x)}</td><td>${esc(x.e.title)}</td><td class="n pay">${fmt(x.CK)}</td><td class="small">${esc(nd)}</td>${acc(x)}<td>${esc(x.e.bank)}</td></tr>`).join('');
+    foot = `<tr class="tot"><td class="s1"></td><td class="s2">Tổng cộng</td><td></td><td class="n">${fmt(sumBy(ok, x => x.CK))}</td><td></td><td></td><td></td></tr>`;
+  }
+  const missRows = miss.length ? `<tr class="g miss"><td class="s1"></td><td colspan="6">Chưa có số tài khoản, không đưa vào file chuyển khoản (${miss.length} người · ${fmt(sumBy(miss, x => x.CK))} đ)</td></tr>` +
+    miss.map(x => `<tr class="p wn"><td class="s1"></td>${cs ? `<td class="muted">—</td><td>${nm(x)}</td><td class="n">${fmt(x.CK)}</td><td class="n">${fmt(x.CK)}</td><td class="small muted">Bổ sung ở Danh mục › Nhân viên</td><td></td>` : `<td class="s2">${nm(x)}</td><td>${esc(x.e.title)}</td><td class="n">${fmt(x.CK)}</td><td class="small muted">Bổ sung ở Danh mục › Nhân viên</td><td class="muted">—</td><td></td>`}</tr>`).join('') : '';
+  $('#pl-t').innerHTML = pay.length ? head + '<tbody>' + body + foot + missRows + '</tbody>' : '<tbody><tr><td class="empty">Không có người nào khớp bộ lọc.</td></tr></tbody>';
+  $('#pl-t-info').innerHTML = `${ok.length} người` + (miss.length ? ` · <span class="warnc">${miss.length} người chưa có tài khoản</span>` : '');
+  $('#pl-note').innerHTML = (jobKeys() ? 'Đang lọc công việc: bảng chỉ gồm người có làm công việc đó, số tiền chuyển vẫn là toàn bộ số nhận của người đó. ' : '') + `Số tiền chuyển = ${cs ? 'Tiền lương còn nhận' : 'Số tiền thực nhận'} trên bảng lương (đã trừ bảo hiểm, truy thu, ĐPCĐ${cs ? ', ứng tiền ăn ca' : ''} và khoản khác). Số tài khoản, ngân hàng lấy ở Danh mục › Nhân viên; nội dung chuyển khoản theo mẫu "${esc(nd)}". Người có số nhận bằng 0 hoặc âm không đưa vào bảng.${cs ? ' Cột Tổng cộng hiện bằng cột tiền lương vì app chưa có khoản chuyển khác cộng thêm.' : ''}`;
+}
+
 /* Bảng hạch toán (Chư Sê, theo sheet Hạch toán ld): công, tiền từng người theo nhóm mủ; ngày thường và ngày lễ */
 function renderHt() {
   const r = baseRows(S.m), hol = holOf(S.m), F = FAC[S.f];
@@ -1219,8 +1400,8 @@ function renderHt() {
   $('#pl-note').innerHTML = `Mỗi ô = phần công, tiền của người đó trong từng nhóm mủ, cộng từ các phân hệ người đó làm (chế biến, cán ủ, đánh đông, CKCĐ + NT, chà thùng, xe nâng, lái xe). Cột SVR10 Công ty gồm cả Ia Lâu, ngoại lệ, cán ủ. Cột công là công quy đổi = tấn × định mức; tiền = công × đơn giá phân hệ${isL ? ' × hệ số lễ' : ''}. Tổng cộng của từng người bằng cột ${isL ? '"Lương làm ngày lễ"' : '"Lương sản phẩm"'} trên bảng lương. SVR3L thu mua không tách cột riêng vì phiếu nhập kho đang gộp vào dây chuyền 2 tấn.`;
 }
 function renderTable() {
-  $('#pl-toggle').hidden = S.view === 'pt';
-  ({ luong: renderLuong, pt: renderPt, ht: renderHt })[S.view]();
+  $('#pl-toggle').hidden = S.view === 'pt' || S.view === 'ck';
+  ({ luong: renderLuong, pt: renderPt, ht: renderHt, ck: renderCk })[S.view]();
   const t = $('#pl-t'), tr = t.querySelectorAll('thead tr');
   let h = 0; ['--h1', '--h2', '--h3'].forEach((v, i) => { if (tr[i]) h += tr[i].getBoundingClientRect().height; t.style.setProperty(v, h + 'px'); });
   $('#pl-toggle').textContent = S.col.size >= groupsShown().length ? 'Mở rộng tất cả' : 'Thu gọn tất cả';
@@ -1234,11 +1415,13 @@ function exportTable() {
   const keep = new Set(S.col); S.col.clear(); renderTable();
   const t = $('#pl-t').cloneNode(true), title = $('#pl-t-title').textContent;
   S.col = keep; renderTable();
+  t.querySelectorAll('br').forEach(x => x.replaceWith(' '));
   t.querySelectorAll('.tg, .pl-wt, .tabs, button').forEach(x => x.remove());
+  if (S.view === 'ck') t.querySelectorAll('tr.wn, tr.miss').forEach(x => x.remove()); // file chuyển khoản chỉ gồm người có tài khoản
   t.querySelectorAll('a').forEach(a => a.replaceWith(document.createTextNode(a.textContent)));
   t.querySelectorAll('td, th').forEach(c => {
     const s = c.textContent.replace(/\s+/g, ' ').trim(); c.textContent = s;
-    if (c.tagName === 'TD' && /^−?-?[\d.]+(,\d+)?$/.test(s) && !(/^0\d/.test(s))) {
+    if (c.tagName === 'TD' && !c.classList.contains('txt') && /^−?-?[\d.]+(,\d+)?$/.test(s) && !(/^0\d/.test(s))) {
       const neg = /^[−-]/.test(s), dec = (s.split(',')[1] || '').length, v = +s.replace(/^[−-]/, '').replace(/\./g, '').replace(',', '.');
       if (!isNaN(v)) { c.setAttribute('data-t', 'n'); c.setAttribute('data-v', String(neg ? -v : v)); c.setAttribute('data-z', dec ? '#,##0.' + '0'.repeat(dec) : '#,##0'); }
     } else { c.setAttribute('data-t', 's'); }
@@ -1274,7 +1457,7 @@ function exportTable() {
   const tc = ws.A3; if (tc) tc.s = { font: font({ bold: true, sz: 14 }) };
   ws['!rows'] = []; for (let i = 0; i < nh; i++) ws['!rows'][4 + i] = { hpt: 30 };
   ws['!cols'] = Array.from({ length: rg.e.c + 1 }, (_, i) => ({ wch: i === 0 ? 6 : i === 1 ? 28 : 13 }));
-  const wb = X.utils.book_new(), kind = { luong: 'bang-luong', pt: 'bang-phan-toan', ht: 'bang-hach-toan' + (S.htp === 'l' ? '-ngay-le' : '') }[S.view];
+  const wb = X.utils.book_new(), kind = { luong: 'bang-luong', pt: 'bang-phan-toan', ht: 'bang-hach-toan' + (S.htp === 'l' ? '-ngay-le' : ''), ck: 'bang-chuyen-khoan' }[S.view];
   X.utils.book_append_sheet(wb, ws, kind.slice(0, 31));
   const name = `${kind}-${S.f === 'chuse' ? 'chu-se' : 'thanh-cong'}-${S.m.slice(5)}-${S.m.slice(0, 4)}.xlsx`;
   X.writeFile(wb, name); toast('Đã xuất ' + name);
@@ -1385,9 +1568,9 @@ function buildForm(f, m, prefill) {
   const line = (txt, s, merge = true) => { put(R, 0, txt, s); for (let c = 1; c < N; c++) put(R, c, '', s); if (merge) merges.push({ s: { r: R, c: 0 }, e: { r: R, c: N - 1 } }); R++; };
   put(R, 0, 'CÔNG TY TNHH MTV CAO SU CHƯ SÊ', st.b); merges.push({ s: { r: R, c: 0 }, e: { r: R, c: 4 } }); R++;
   put(R, 0, ('Nhà máy chế biến cao su ' + F.name).toLocaleUpperCase('vi-VN'), st.b); merges.push({ s: { r: R, c: 0 }, e: { r: R, c: 4 } }); R++; R++;
-  line('BẢNG THEO DÕI BẢO HIỂM VÀ CÁC KHOẢN THU HỘ', st.t);
+  line('CÁC KHOẢN KHẤU TRỪ QUA LƯƠNG', st.t);
   line('Tháng ' + mLbl(m), { font: font({ bold: true }), alignment: { horizontal: 'center' } });
-  line('Điền vào các ô nền vàng (file không có công thức, cần thì tự viết thêm). Giữ nguyên cột Mã NV và tiêu đề cột; không thêm, xóa hay đổi tên cột. Lưu file rồi tải lên ở tab Các khoản thu hộ của app, chọn đúng tháng.', st.i);
+  line('Điền vào các ô nền vàng (file không có công thức, cần thì tự viết thêm). Giữ nguyên cột Mã NV và tiêu đề cột; không thêm, xóa hay đổi tên cột. Lưu file rồi tải lên ở tab Các khoản khấu trừ qua lương của app, chọn đúng tháng.', st.i);
   ws['!rows'] = []; ws['!rows'][R - 1] = { hpt: 32 };
   R++;
   cols.forEach((c, i) => put(R, i, c.h, st.h)); ws['!rows'][R] = { hpt: 46 }; R++;
@@ -1415,13 +1598,13 @@ function buildForm(f, m, prefill) {
   R += 2;
   ws['!ref'] = 'A1:' + colL(N - 1) + R; ws['!merges'] = merges; ws['!cols'] = cols.map(c => ({ wch: c.w }));
   const guide = X.utils.aoa_to_sheet([
-    ['Hướng dẫn điền form thu hộ – ' + F.full + ' – tháng ' + mLbl(m)], [''],
+    ['Hướng dẫn điền form khấu trừ qua lương – ' + F.full + ' – tháng ' + mLbl(m)], [''],
     ['1. Mỗi dòng là một người theo danh mục nhân viên của app (cột Mã NV). Không đổi Mã NV; người không có trong danh sách thì thêm ở Danh mục › Nhân viên trước rồi tải lại form.'],
     ['2. File không có công thức. Cột BHXH, YT, TN ghi số tiền thu của tháng; cần tính thì tự viết công thức trong file, app chỉ đọc giá trị.'],
     ...(cs ? [['3. Hệ số lương, PC khu vực, PC trách nhiệm, % thâm niên vượt khung (ví dụ 5%) để đối chiếu; nếu để trống cột BHXH mà có hệ số thì app tự tính = (HSL + PCKV + PCTN + HSL × %TNVK) × ' + fmt(F.BH_BASE) + ' × ' + pct(F.BH_RATE * 100) + ' và báo cảnh báo.']]
       : [['3. Mức lương bao gồm phụ cấp, chênh lệch, bảo lưu dùng cho lương vận chuyển vật tư; người thử việc ghi x (tính ' + pct(F.TV * 100) + '). Nếu để trống cột BHXH mà có mức lương thì app tự tính = mức lương × ' + pct(F.BH_RATE * 100) + ' (thử việc = 0) và báo cảnh báo.']]),
     ['4. Truy thu và Khoản thu khác ghi số tiền (đồng); lý do ghi ở cột Ghi chú.'],
-    ['5. Mỗi tháng một file. Tải lên ở tab Các khoản thu hộ, chọn tháng; lần tải sau ghi đè toàn bộ số của tháng đó.'],
+    ['5. Mỗi tháng một file. Tải lên ở tab Các khoản khấu trừ qua lương, chọn tháng; lần tải sau ghi đè toàn bộ số của tháng đó.'],
     ['6. Người có trong danh mục nhưng không có trong file, hoặc để trống thông tin bảo hiểm, sẽ không bị trừ bảo hiểm (bỏ qua).'],
 ]); guide['!cols'] = [{ wch: 120 }];
   const meta = X.utils.aoa_to_sheet([['factory', f], ['month', m], ['form', 'thu-ho-v1']]);
@@ -1432,7 +1615,7 @@ function buildForm(f, m, prefill) {
 function downloadForm() {
   if (!window.XLSX) { toast('Không tải được thư viện Excel', 'bad'); return; }
   const pre = $('#th-pre') ? $('#th-pre').checked : true;
-  const wb = buildForm(S.f, S.m, pre), name = `form-thu-ho-${S.f === 'chuse' ? 'chu-se' : 'thanh-cong'}-${S.m.slice(5)}-${S.m.slice(0, 4)}.xlsx`;
+  const wb = buildForm(S.f, S.m, pre), name = `form-khau-tru-${S.f === 'chuse' ? 'chu-se' : 'thanh-cong'}-${S.m.slice(5)}-${S.m.slice(0, 4)}.xlsx`;
   window.XLSX.writeFile(wb, name); toast('Đã tải ' + name);
 }
 
@@ -1543,7 +1726,7 @@ function thuHoHTML() {
   const foot = `<tr><td colspan="4">Tổng cộng (${list.length} người)</td>${showC.map(fd => fd.t === 'money' ? `<td class="r">${fmt(sumBy(all, v => fd.k === 'mdong' ? mdongOf(v, S.m) : v[fd.k]))}</td>` : '<td></td>').join('')}</tr>`;
   const tot = { bh: sumBy(Object.values(cur.rows), v => v.bh), truy: sumBy(Object.values(cur.rows), v => v.truy), khac: sumBy(Object.values(cur.rows), v => v.khac), n: Object.values(cur.rows).filter(v => v.bh > 0).length };
   return `
-  <div class="pane-head"><div><h2>Các khoản thu hộ</h2>
+  <div class="pane-head"><div><h2>Các khoản khấu trừ qua lương</h2>
     <p>Bảo hiểm (BHXH, YT, TN), truy thu và các khoản thu khác của từng người, dùng cho cột thu hộ của Báo cáo lương. Mỗi nhà máy một mẫu form riêng theo file lương của nhà máy đó; đổi nhà máy ở thanh trên.</p></div>
     <div class="toolbar"><button class="btn" data-tab="luong">Xem Báo cáo lương</button></div></div>
   <div class="th-steps">${steps.map((s, i) => `<div class="th-step${i + 1 === stage ? ' on' : ''}"><span class="gn-ico">${s[0]}</span><div><b>${esc(s[1])}</b><small>${esc(s[2])}</small></div></div>`).join('')}</div>
@@ -1592,7 +1775,7 @@ function thuHoAfter() {
     if (a === 'dl') downloadForm();
     if (a === 'cancel') { S.up = null; render(); }
     if (a === 'apply') applyUpload();
-    if (a === 'reset' && confirm(`Xóa số thu hộ của tháng ${mLbl(S.m)}? Các khoản thu hộ sẽ tính bằng 0.`)) { delete TH[S.f][S.m]; thSave(); render(); toast('Đã xóa số thu hộ tháng ' + mLbl(S.m)); }
+    if (a === 'reset' && confirm(`Xóa số thu hộ của tháng ${mLbl(S.m)}? Các khoản khấu trừ qua lương sẽ tính bằng 0.`)) { delete TH[S.f][S.m]; thSave(); render(); toast('Đã xóa số thu hộ tháng ' + mLbl(S.m)); }
     if (a === 'demo') { TH[S.f] = TH[S.f] || {}; TH[S.f][S.m] = thDemo(S.f, S.m); thSave(); render(); toast('Đã nạp số mẫu tháng ' + mLbl(S.m)); }
   }));
 }
