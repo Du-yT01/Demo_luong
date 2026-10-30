@@ -621,8 +621,6 @@ table.pl-t{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:
   #toasts{display:none!important}
   body.pl-print-table .pl-seg2,body.pl-print-table #pl-t-info{display:none!important}
   body.pl-print-table .pl-sw.more::after{display:none}
-  body.pl-print-table .pl-note{display:block!important}
-  body.pl-print-table .pane>.pl-note{display:block!important}
 }
 .pl-flt{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12.5px}
 .pl-flt label{color:var(--muted);font-weight:600}
@@ -682,6 +680,7 @@ table.pl-t{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:
   body.pl-print-table .pl-sheet{border:0!important}
   body.pl-print-table .pl-t td.sub{padding-left:14px}
 }
+@media print{body.pl-print-table .pl-note,body.pl-print-table #pl-note{display:none!important}}
 
 </style>
 </head>
