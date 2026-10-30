@@ -744,7 +744,10 @@ function split(fund, w) { const T = Object.values(w).reduce((a, b) => a + b, 0),
 function toast(msg, kind) { const b = $('#toasts'), t = document.createElement('div'); t.className = 'toast' + (kind ? ' ' + kind : ''); t.textContent = msg; b.appendChild(t); setTimeout(() => t.remove(), 3600); }
 
 /* ============ 2. THAM SỐ CHUNG ============ */
-const MONTHS = ['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09'];
+const MONTHS = ['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09']; // các tháng đã có số trên app (bản demo)
+// các tháng chọn được trên thanh trên: từ 01/2026; tháng chưa có số trên app thì đẩy dữ liệu cũ (tab Dữ liệu lương các tháng trước)
+const ALL_MONTHS = ['2026-01', '2026-02', '2026-03'].concat(MONTHS);
+const hasApp = m => MONTHS.includes(m);
 // Ngày lễ từng tháng (app: periods.holidayInfo { ngày: { name, rate } })
 const HOL = {
   '2026-04': [{ d: 30, name: 'Giải phóng miền Nam', r: 3 }], '2026-05': [{ d: 1, name: 'Quốc tế lao động', r: 3 }],
@@ -976,7 +979,8 @@ function computeCS(m) {
     const bh = +t.bh || 0, truy = +t.truy || 0, khac = (+t.khac || 0) + (+t.uh || 0), cd = Math.round(Math.max(0, tong - bh - truy) * F.CD), ung = tg;
     const tx = pitOf(F, t, tt, bh, truy, tg + ts, (+t.pckv || 0) * F.BH_BASE), thue = tx.thue;
     const nhan = tt - cd - truy - ung - bh - khac - thue;
-    return { id: e.id, k: e.k, e, name: e.name, title: e.title, mst: e.mst, nhom: e.nhom, spc: p.spc, sp: p.sp, lec: p.lec, le: p.le, lk, tong, ng, tg, ns, ts, tt, cd, truy, ung, bh, khac, thue, tx, nhan,
+    const cc = e.k === 'LX' ? p.an : sumBy(p.w, x => x || 0); // số công chấm (lái xe: số ngày có chuyến)
+    return { id: e.id, k: e.k, e, name: e.name, title: e.title, mst: e.mst, nhom: e.nhom, cc, spc: p.spc, sp: p.sp, lec: p.lec, le: p.le, lkc, lk, tong, ng, tg, ns, ts, tt, cd, truy, ung, bh, khac, thue, tx, nhan,
       ht: p.ht, ln: p.ln, TL: tong, LE: p.le, CQD: p.spc + p.lec, AN: ng, THU: cd + truy + bh + khac + thue, NHAN: nhan, parts: Object.values(p.parts).filter(x => Math.abs(x.v) > 0.5), th: t };
   });
   // Bảng phân toán theo mẫu Chư Sê: A. Tiền lương chế biến (I Công ty, II Thu mua, III Lái xe nâng), B. Tiền ăn ca
@@ -1091,34 +1095,34 @@ function computeTC(m) {
 // Nhóm mủ của Bảng hạch toán (theo sheet Hạch toán ld của file lương Chư Sê)
 const HT_CATS = [['3L', 'SVR3L + 10 Công ty'], ['10', 'SVR10 Công ty'], ['RSS', 'Mủ RSS'], ['KHAC', 'Lái máy'], ['LK', 'Lương khác'], ['PAL', 'Đóng pallet'], ['TM3L', 'Thu mua SVR3L'], ['TM10', 'Thu mua SVR10']];
 const CACHE = {};
-const calc = (f, m) => { const k = f + '|' + m + '|' + THV; return CACHE[k] || (CACHE[k] = f === 'chuse' ? computeCS(m) : computeTC(m)); };
+const calc = (f, m) => { if (!hasApp(m)) return { rows: [], pt: [], ptTotal: 0, ptAn: 0, vtTotal: 0 }; const k = f + '|' + m + '|' + THV; return CACHE[k] || (CACHE[k] = f === 'chuse' ? computeCS(m) : computeTC(m)); };
 
 /* ============ 7. KHUNG APP: thanh trên, cột phân hệ ============ */
 const LS = { get: (k, d) => { try { const v = localStorage.getItem('luong:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set: (k, v) => { try { localStorage.setItem('luong:' + k, JSON.stringify(v)); } catch (e) { /* bỏ qua */ } } };
 const S = { ptOpen: new Set(), ptCol: new Set(), f: LS.get('fac', 'chuse'), m: LS.get('m', MONTHS[MONTHS.length - 1]), tab: LS.get('tab', 'luong'), g: '', q: '', view: 'luong', col: new Set(), slip: null, up: null };
-if (!FAC[S.f]) S.f = 'chuse'; if (!MONTHS.includes(S.m)) S.m = MONTHS[MONTHS.length - 1];
-const TABS = [{ key: 'thuho', title: 'Các khoản khấu trừ qua lương', short: 'Khấu trừ' }, { key: 'luong', title: 'Báo cáo lương', short: 'Lương' }];
+if (!FAC[S.f]) S.f = 'chuse'; if (!ALL_MONTHS.includes(S.m)) S.m = MONTHS[MONTHS.length - 1];
+const TABS = [{ key: 'thuho', title: 'Các khoản khấu trừ qua lương', short: 'Khấu trừ' }, { key: 'luong', title: 'Báo cáo lương', short: 'Lương' }, { key: 'cu', title: 'Dữ liệu lương các tháng trước', short: 'Dữ liệu cũ' }];
 function renderTop() {
   const F = FAC[S.f];
   $('#topbar').innerHTML = `
     <div class="brand"><b class="bl">Nhập liệu sản xuất · ${esc(F.full)}</b><b class="bs">${esc(F.full)}</b><span>Công ty TNHH MTV Cao su Chư Sê</span></div>
     <div class="tb-group"><label for="tb-factory">Nhà máy</label><select id="tb-factory">${Object.values(FAC).map(x => `<option value="${x.id}"${x.id === S.f ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>
-    <div class="tb-group"><label for="tb-period">Tháng</label><select id="tb-period">${MONTHS.slice().reverse().map(m => `<option value="${m}"${m === S.m ? ' selected' : ''}>Tháng ${mLbl(m)}</option>`).join('')}</select></div>
+    <div class="tb-group"><label for="tb-period">Tháng</label><select id="tb-period">${ALL_MONTHS.slice().reverse().map(m => `<option value="${m}"${m === S.m ? ' selected' : ''}>Tháng ${mLbl(m)}${hasApp(m) ? '' : ' (cũ)'}</option>`).join('')}</select></div>
     <div class="menu"><button class="btn sm" id="tb-menu" aria-haspopup="true" aria-expanded="false" aria-label="Dữ liệu">☰<span class="mt"> Dữ liệu</span></button><div class="menu-pop" id="menu-pop" hidden>
       <button data-menu="theme">Đổi giao diện sáng / tối</button><hr><button data-menu="clear">Xóa số thu hộ đã tải lên của ${esc(F.full)}…</button></div></div>`;
-  $('#rail').innerHTML = TABS.map((t, i) => `<button data-tab="${t.key}" aria-current="${t.key === S.tab}"><span class="n">${i + 1}</span><span class="t">${esc(t.title)}</span><span class="ts">${esc(t.short)}</span><span class="dot ${t.key === 'thuho' ? (thGet(S.f, S.m).src === 'file' ? 'ok' : 'warn') : 'ok'}" title="${t.key === 'thuho' && thGet(S.f, S.m).src !== 'file' ? 'Tháng này chưa tải form thu hộ' : ''}"></span></button>`).join('');
+  $('#rail').innerHTML = TABS.map((t, i) => `<button data-tab="${t.key}" aria-current="${t.key === S.tab}"><span class="n">${i + 1}</span><span class="t">${esc(t.title)}</span><span class="ts">${esc(t.short)}</span><span class="dot ${t.key === 'thuho' ? (thGet(S.f, S.m).src === 'file' ? 'ok' : 'warn') : t.key === 'cu' ? (hasApp(S.m) || oldGet(S.f, S.m) ? 'ok' : 'warn') : 'ok'}" title="${t.key === 'thuho' && thGet(S.f, S.m).src !== 'file' ? 'Tháng này chưa tải form thu hộ' : ''}"></span></button>`).join('');
 }
 function render() {
   untip(); renderTop();
   const main = $('#main'), sc = main.querySelector('.pl-scroll'), keep = sc ? [sc.scrollLeft, sc.scrollTop] : null;
-  try { main.innerHTML = `<div class="pane full">${S.tab === 'thuho' ? thuHoHTML() : luongHTML()}</div>`; (S.tab === 'thuho' ? thuHoAfter : luongAfter)(); }
+  try { main.innerHTML = `<div class="pane full">${S.tab === 'thuho' ? thuHoHTML() : S.tab === 'cu' ? cuHTML() : luongHTML()}</div>`; (S.tab === 'thuho' ? thuHoAfter : S.tab === 'cu' ? cuAfter : luongAfter)(); }
   catch (e) { console.error(e); main.innerHTML = `<div class="banner bad">Lỗi hiển thị: ${esc(e.message)}</div>`; }
   const sc2 = main.querySelector('.pl-scroll'); if (keep && sc2) { sc2.scrollLeft = keep[0]; sc2.scrollTop = keep[1]; }
 }
 function go(tab) { S.tab = tab; LS.set('tab', tab); closeSlip(); render(); window.scrollTo(0, 0); }
-function setMonth(m) { S.m = m; LS.set('m', m); S.up = null; render(); if (S.slip) openSlip(S.slip); }
+function setMonth(m) { S.m = m; LS.set('m', m); S.up = null; S.cup = null; render(); if (S.slip) openSlip(S.slip); }
 document.addEventListener('change', e => {
-  if (e.target.id === 'tb-factory') { S.f = e.target.value; LS.set('fac', S.f); S.g = ''; S.q = ''; S.col.clear(); S.up = null; closeSlip(); render(); }
+  if (e.target.id === 'tb-factory') { S.f = e.target.value; LS.set('fac', S.f); S.g = ''; S.q = ''; S.col.clear(); S.up = null; S.cup = null; closeSlip(); render(); }
   if (e.target.id === 'tb-period') setMonth(e.target.value);
 });
 document.addEventListener('click', e => {
@@ -1142,7 +1146,7 @@ function bindTips(box) { box.querySelectorAll('[data-tip]').forEach(el => { el.a
 function niceTop(mx, steps = 5) { const step = Math.pow(10, Math.floor(Math.log10(mx / steps))); const n = [1, 2, 2.5, 5, 10].map(x => x * step).find(x => mx / x <= steps) || step * 10; return { top: Math.ceil(mx / n) * n, n }; }
 const int0 = x => fmt(x);
 const COLS = {
-  chuse: [['spc', fc], ['sp', fmt], ['lec', fc, 1], ['le', fmt, 1], ['lk', fmt], ['tong', fmt], ['ng', int0], ['tg', fmt], ['ns', int0], ['ts', fmt], ['tt', fmt], ['cd', fmt], ['truy', fmt], ['ung', fmt], ['bh', fmt], ['thue', fmt], ['khac', fmt], ['nhan', fmt]],
+  chuse: [['spc', fc], ['sp', fmt], ['lec', fc, 1], ['le', fmt, 1], ['lkc', fc], ['lk', fmt], ['tong', fmt], ['ng', int0], ['tg', fmt], ['ns', int0], ['ts', fmt], ['tt', fmt], ['cd', fmt], ['truy', fmt], ['ung', fmt], ['bh', fmt], ['thue', fmt], ['khac', fmt], ['nhan', fmt]],
   thanhcong: [['luong', fmt], ['so', f1], ['sc', fc], ['st', fmt], ['lc', fc, 1], ['lt', fmt, 1], ['bc', fc], ['bt', fmt], ['blc', fc, 1], ['blt', fmt, 1], ['vc', f1], ['vt', fmt], ['lk', fmt], ['tc', fc], ['tt', fmt], ['an', int0], ['at', fmt], ['tong', fmt], ['bh', fmt], ['truy', fmt], ['cd', fmt], ['thue', fmt], ['khac', fmt], ['thu', fmt], ['nhan', fmt]],
 };
 const SUMK = ['TL', 'LE', 'CQD', 'AN', 'THU', 'NHAN'];
@@ -1163,7 +1167,7 @@ function jobView(r, keys) {
   const z = { ng: 0, tg: 0, ns: 0, ts: 0, tt: 0, cd: 0, truy: 0, ung: 0, bh: 0, khac: 0, thue: 0, nhan: 0, an: 0, at: 0, tong: 0, thu: 0, luong: 0, so: 0 };
   const o = Object.assign({}, r, z, { _job: true, NHAN0: r.NHAN, ht: hs, TL: v + lv, LE: lv, CQD: c + lc, AN: 0, THU: 0, NHAN: 0 });
   const lkv = part.lk ? part.lk.v : 0;
-  o.lk = lkv;
+  o.lk = lkv; o.lkc = part.lk ? part.lk.c : 0;
   if (S.f === 'chuse') Object.assign(o, { spc: c - (part.lk ? part.lk.c : 0), sp: v - lkv, lec: lc, le: lv, tong: v + lv });
   else { const sum = (ks, f) => sumBy(ks.filter(k => part[k]), k => part[k][f]), cb = Object.keys(part).filter(k => k !== 'bx' && k !== 'vt' && k !== 'lk');
     Object.assign(o, { sc: sum(cb, 'c'), st: sum(cb, 'v'), lc: sum(cb, 'lc'), lt: sum(cb, 'lv'), bc: sum(['bx'], 'c'), bt: sum(['bx'], 'v'), blc: sum(['bx'], 'lc'), blt: sum(['bx'], 'lv'), vc: sum(['vt'], 'c'), vt: sum(['vt'], 'v'), tc: c + lc, tt: v + lv }); }
@@ -1173,7 +1177,7 @@ const baseRows = m => { const q = noMark(S.q), keys = jobKeys(); let rows = calc
   if (keys) rows = rows.map(r => jobView(r, keys)).filter(Boolean); return rows; };
 // danh sách chọn công việc lấy theo cấu trúc Bảng phân toán của nhà máy
 function jobOptions() {
-  const pt = calc(S.f, S.m).pt, out = []; let g = null, g2 = null;
+  const pt = calc(S.f, hasApp(S.m) ? S.m : MONTHS[MONTHS.length - 1]).pt, out = []; let g = null, g2 = null;
   const leafs = (from, stopKinds) => { const ks = []; for (let i = from + 1; i < pt.length && !stopKinds.includes(pt[i].kind); i++) if (pt[i].key && (pt[i].kind === 'r' || pt[i].kind === 'sub')) ks.push(pt[i].key); return ks; };
   pt.forEach((o, i) => {
     if (o.kind === 'g') { g = out.length; out.push({ v: leafs(i, ['g', 'sec']).join(','), l: `${o.stt}. ${o.name}`, lv: 1 }); }
@@ -1188,8 +1192,9 @@ const holShort = m => (holOf(m).length ? 'Ngày lễ: ' + holOf(m).map(h => `${S
 const holInfo = m => holOf(m).length ? 'Ngày lễ: ' + holOf(m).map(h => `<b style="color:var(--hol)">${String(h.d).padStart(2, '0')}/${m.slice(5)} ${esc(h.name)} ×${h.r}</b>`).join(', ') : 'Tháng không có ngày lễ';
 
 function luongHTML() {
-  if ((S.view === 'ht' && S.f !== 'chuse') || ((S.view === 'th' || S.view === 'bq') && S.f === 'chuse')) S.view = 'luong';
+  if ((S.view === 'ht' && S.f !== 'chuse') || (S.view === 'th' && S.f === 'chuse')) S.view = 'luong';
   if (S.job && !jobOptions().some(o => o.v === S.job)) S.job = null;
+  if (!hasApp(S.m)) S.view = 'lk';
   const F = FAC[S.f], th = thGet(S.f, S.m);
   const thBanner = th.src === 'file'
     ? `<div class="banner"><span>Bảo hiểm và các khoản thu hộ tháng ${mLbl(S.m)} lấy từ file <b>${esc(th.file)}</b>, cập nhật ${esc(new Date(th.at).toLocaleString('vi-VN'))}.</span><button class="lnk" data-tab="thuho">Xem ở tab Các khoản khấu trừ qua lương</button></div>`
@@ -1201,7 +1206,7 @@ function luongHTML() {
     <div class="toolbar"><span class="small muted">Bộ phận</span>${ddHTML('grp')}
       <span class="small muted">Công việc</span>${ddHTML('job')}
       <input id="pl-q" type="search" placeholder="Tìm họ tên, mã NV, mã số thuế" aria-label="Tìm người" value="${esc(S.q)}" style="width:230px"></div></div>
-  ${thBanner}
+  ${hasApp(S.m) ? thBanner : `<div class="banner warn"><span>Tháng ${mLbl(S.m)} chưa có số trên app, chỉ xem được Bảng lũy kế (lấy từ dữ liệu cũ đã đẩy lên).</span><button class="lnk" data-tab="cu">Đẩy dữ liệu cũ</button></div>`}
   <div id="pl-jobb"></div>
   <div class="pl-kpis" id="pl-kpis"></div>
   <div class="pl-row">
@@ -1212,7 +1217,7 @@ function luongHTML() {
   </div>
   <section class="pl-sheet">
     <div class="pl-sheet-h">
-      <div class="tabs" role="tablist" aria-label="Chọn bảng"><button role="tab" data-view="luong" aria-selected="${S.view === 'luong'}">Bảng lương</button><button role="tab" data-view="pt" aria-selected="${S.view === 'pt'}">${S.f === 'chuse' ? 'Bảng phân toán' : 'Bảng nghiệm thu'}</button>${S.f === 'chuse' ? `<button role="tab" data-view="ht" aria-selected="${S.view === 'ht'}">Bảng hạch toán</button>` : `<button role="tab" data-view="th" aria-selected="${S.view === 'th'}">Bảng tổng hợp</button><button role="tab" data-view="bq" aria-selected="${S.view === 'bq'}">Lương bình quân</button>`}<button role="tab" data-view="ck" aria-selected="${S.view === 'ck'}">Bảng chuyển khoản</button></div>
+      <div class="tabs" role="tablist" aria-label="Chọn bảng"><button role="tab" data-view="luong" aria-selected="${S.view === 'luong'}">Bảng lương</button><button role="tab" data-view="pt" aria-selected="${S.view === 'pt'}">${S.f === 'chuse' ? 'Bảng phân toán' : 'Bảng nghiệm thu'}</button>${S.f === 'chuse' ? `<button role="tab" data-view="ht" aria-selected="${S.view === 'ht'}">Bảng hạch toán</button>` : `<button role="tab" data-view="th" aria-selected="${S.view === 'th'}">Bảng tổng hợp</button>`}<button role="tab" data-view="bq" aria-selected="${S.view === 'bq'}">Lương bình quân</button><button role="tab" data-view="ck" aria-selected="${S.view === 'ck'}">Bảng chuyển khoản</button><button role="tab" data-view="lk" aria-selected="${S.view === 'lk'}">Bảng lũy kế</button></div>
       <span id="pl-sub"></span><span class="grow"></span><span id="pl-t-title" hidden></span><span class="small muted" id="pl-t-info"></span>
       <button class="lnk" id="pl-toggle" type="button">Thu gọn tất cả</button><button class="btn sm" id="pl-print" type="button">In phiếu</button><button class="btn sm primary" id="pl-xlsx" type="button">↓ Xuất Excel</button>
     </div>
@@ -1364,10 +1369,10 @@ function headLuong() {
   const mm = S.m.slice(5), yy = S.m.slice(0, 4);
   if (S.f === 'chuse') return `<thead>
 <tr><th class="s1" rowspan="3">STT</th><th class="s2" rowspan="3">Họ và tên</th><th rowspan="3">Mã số thuế</th>
-<th colspan="2" rowspan="2">Lương sản phẩm</th><th colspan="2" rowspan="2" class="hh">Lương làm ngày lễ</th><th rowspan="3">Lương khác</th><th rowspan="3">Tổng lương</th>
+<th colspan="2" rowspan="2">Lương sản phẩm</th><th colspan="2" rowspan="2" class="hh">Lương làm ngày lễ</th><th colspan="2" rowspan="2">Lương khác</th><th rowspan="3">Tổng lương</th>
 <th colspan="4">Tiền ăn ca</th><th rowspan="3">Tổng thanh toán</th><th colspan="6">Khấu trừ</th><th rowspan="3">Tiền lương<br>còn nhận</th><th rowspan="3" class="ky">Ký nhận</th></tr>
 <tr><th colspan="2">Giữa ca</th><th colspan="2">Ca sáng</th><th rowspan="2">ĐPCĐ</th><th rowspan="2">Truy thu BH</th><th rowspan="2">Ứng ăn ca</th><th rowspan="2">BHXH, YT, TN</th><th rowspan="2">Thuế TNCN</th><th rowspan="2">Khác</th></tr>
-<tr><th>Công</th><th>Tiền</th><th class="hh">Công</th><th class="hh">Tiền</th><th>Công</th><th>Tiền</th><th>Công</th><th>Tiền</th></tr></thead>`;
+<tr><th>Công</th><th>Tiền</th><th class="hh">Công</th><th class="hh">Tiền</th><th>Công</th><th>Tiền</th><th>Công</th><th>Tiền</th><th>Công</th><th>Tiền</th></tr></thead>`;
   return `<thead>
 <tr><th class="s1" rowspan="3">STT</th><th class="s2" rowspan="3">Họ và tên</th><th rowspan="3">Chức vụ</th><th rowspan="3">Số CCCD</th><th rowspan="3">Mức lương</th>
 <th colspan="5">Lương chế biến / vận chuyển mủ</th>
@@ -1490,13 +1495,13 @@ function renderTh() {
   const tot = F0(); rows.filter(x => x.kind === 'g').forEach(x => Object.keys(F0()).forEach(f => { tot[f] += x[f]; }));
   const N = (v, f = fmt) => `<td class="n">${Math.abs(v) > 1e-9 ? f(v) : ''}</td>`;
   const cells = o => { const tl = o.v + o.pc, tc = tl + o.at, thu = o.bh + o.truy + o.cd + o.thue + o.khac;
-    return N(o.c, fc) + N(o.v) + N(o.pc) + `<td class="n pay">${tl ? fmt(tl) : ''}</td>` + N(o.ac, f1) + N(o.at) + N(tc) + N(o.bh) + N(o.truy) + N(o.cd) + N(o.thue) + N(thu) + `<td class="n pay">${tc ? fmt(tc - thu) : ''}</td>`; };
-  $('#pl-t').innerHTML = `<thead><tr><th class="s1" rowspan="2">STT</th><th class="s2" rowspan="2" style="min-width:260px">Tên đơn vị</th><th colspan="2">Lương</th><th rowspan="2">Phụ cấp<br>ATVSV</th><th rowspan="2">Tổng tiền<br>lương</th><th colspan="2">Tiền ăn ca</th><th rowspan="2">Tổng cộng</th><th colspan="5">Các khoản khấu trừ qua lương</th><th rowspan="2">Số tiền<br>được nhận</th></tr>
+    return N(o.c, fc) + N(o.v) + `<td class="n pay">${tl ? fmt(tl) : ''}</td>` + N(o.ac, f1) + N(o.at) + N(tc) + N(o.bh) + N(o.truy) + N(o.cd) + N(o.thue) + N(thu) + `<td class="n pay">${tc ? fmt(tc - thu) : ''}</td>`; };
+  $('#pl-t').innerHTML = `<thead><tr><th class="s1" rowspan="2">STT</th><th class="s2" rowspan="2" style="min-width:260px">Tên đơn vị</th><th colspan="2">Lương</th><th rowspan="2">Tổng tiền<br>lương</th><th colspan="2">Tiền ăn ca</th><th rowspan="2">Tổng cộng</th><th colspan="5">Các khoản khấu trừ qua lương</th><th rowspan="2">Số tiền<br>được nhận</th></tr>
 <tr><th>Công</th><th>T.Tiền</th><th>Công</th><th>T.Tiền</th><th>BHXH, YT, TN</th><th>Truy thu<br>BHXH, YT, TN</th><th>ĐPCĐ</th><th>Thuế TNCN</th><th>Cộng</th></tr></thead>
 <tbody>${rows.map(x => `<tr class="${x.kind === 'g' ? 'g' : 'p'}"><td class="s1">${x.stt}</td><td class="s2">${esc(x.name)}</td>${cells(x)}</tr>`).join('')}<tr class="tot"><td class="s1"></td><td class="s2">CỘNG</td>${cells(tot)}</tr></tbody>`;
   const ref = sel ? null : { tl: sumBy(people, x => x.TL), nhan: sumBy(people, x => x.NHAN) }, ok = !ref || (Math.abs(tot.v - ref.tl) < 1 && Math.abs(tot.v + tot.at - (tot.bh + tot.truy + tot.cd + tot.thue + tot.khac) - ref.nhan) < 1);
   $('#pl-t-info').innerHTML = sel ? '' : ok ? '<span class="okc" title="Tổng lương và số được nhận bằng bảng lương">✓ Khớp bảng lương</span>' : '<span class="bad">Lệch bảng lương</span>';
-  $('#pl-note').innerHTML = `Lương = phần công, tiền của các dòng tương ứng trên Bảng nghiệm thu (gộp ngày thường và ngày lễ); vận chuyển vật tư / thử việc lấy từ phân hệ Vận chuyển vật tư. Tiền ăn ca và các khoản thu hộ của mỗi người được chia cho các đầu mục theo tỷ lệ tiền lương của người đó ở từng đầu mục (ví dụ người đánh đông – cán có lương ở cả RSS và SVR3L-5), nên cột công ăn ca có số lẻ. Cột Cộng thu hộ gồm cả thu khác nếu có. Phụ cấp ATVSV chưa có nguồn số nên đang để trống.`;
+  $('#pl-note').innerHTML = `Lương = phần công, tiền của các dòng tương ứng trên Bảng nghiệm thu (gộp ngày thường và ngày lễ); vận chuyển vật tư / thử việc lấy từ phân hệ Vận chuyển vật tư. Tiền ăn ca và các khoản thu hộ của mỗi người được chia cho các đầu mục theo tỷ lệ tiền lương của người đó ở từng đầu mục (ví dụ người đánh đông – cán có lương ở cả RSS và SVR3L-5), nên cột công ăn ca có số lẻ. Cột Cộng thu hộ gồm cả thu khác nếu có.`;
 }
 
 /* Bảng hạch toán (Chư Sê, theo sheet Hạch toán ld): công, tiền từng người theo nhóm mủ; ngày thường và ngày lễ */
@@ -1527,12 +1532,14 @@ function renderHt() {
 }
 /* Lương bình quân (Thành Công): Quỹ lương = tổng tiền lương của bộ phận; Lao động bình quân = tổng số công chấm ÷ ngày công chuẩn (Danh mục, như "Lao động bình quân tháng" trên bảng chấm công Excel); Tiền lương bình quân = Quỹ ÷ Lao động bình quân */
 function renderBq() {
-  const r = baseRows(S.m), F = RT(S.f, S.m), NC = F.NC || 26;
+  const r = baseRows(S.m), F = RT(S.f, S.m), NC = F.NC || 26; // Chư Sê chưa có ngày công chuẩn trong Danh mục: dùng 26
   $('#pl-t-title').textContent = `Bảng tiền lương bình quân tháng ${mLbl(S.m)}`; $('#pl-sub').innerHTML = '';
   const one = ks => { const rr = r.filter(x => ks.includes(x.k)); const q = sumBy(rr, x => x.TL), cc = sumBy(rr, x => x.cc || 0), ld = cc / NC; return { q, cc, ld, n: rr.length, bq: ld ? q / ld : 0 }; };
-  const rows = [['g', '1', 'PX RSS + SVR3L-5', ['DD', 'GCN', 'TP']], ['s', '-', 'Đánh đông + cán', ['DD']], ['s', '-', 'Gia công nhiệt', ['GCN']], ['s', '-', 'Thành phẩm', ['TP']],
-    ['g', '2', 'PX SVR 10-20', ['S10']], ['g', '3', 'Lái xe', ['LX']]].map(([kind, stt, name, ks]) => Object.assign({ kind, stt, name }, one(ks)));
-  const tot = one(['DD', 'GCN', 'TP', 'S10', 'LX']);
+  const def = S.f === 'chuse'
+    ? FAC.chuse.groups.map((g, i) => ['g', String(i + 1), g.name, [g.k]])
+    : [['g', '1', 'PX RSS + SVR3L-5', ['DD', 'GCN', 'TP']], ['s', '-', 'Đánh đông + cán', ['DD']], ['s', '-', 'Gia công nhiệt', ['GCN']], ['s', '-', 'Thành phẩm', ['TP']], ['g', '2', 'PX SVR 10-20', ['S10']], ['g', '3', 'Lái xe', ['LX']]];
+  const rows = def.map(([kind, stt, name, ks]) => Object.assign({ kind, stt, name }, one(ks)));
+  const tot = one(FAC[S.f].groups.map(g => g.k));
   const cells = o => `<td class="n">${o.q ? fmt(o.q) : ''}</td><td class="n" title="${fc(o.cc)} công ÷ ${NC}">${o.ld ? f1(o.ld) : ''}</td><td class="n pay">${o.bq ? fmt(o.bq) : ''}</td>`;
   $('#pl-t').innerHTML = `<thead><tr><th class="s1">Stt</th><th class="s2" style="min-width:240px">Bộ phận</th><th>Quỹ lương</th><th>Lao động<br>bình quân</th><th>Tiền lương<br>bình quân</th></tr></thead>
 <tbody>${rows.map(o => `<tr class="${o.kind === 'g' ? 'g' : 'p'}"><td class="s1">${o.stt}</td><td class="s2${o.kind === 's' ? ' sub' : ''}">${esc(o.name)}</td>${cells(o)}</tr>`).join('')}<tr class="tot"><td class="s1"></td><td class="s2">Tổng cộng</td>${cells(tot)}</tr></tbody>`;
@@ -1563,6 +1570,9 @@ function printFrame() {
   } else if (S.view === 'th') {
     head = two(cty, qh) + `<h2 class="pf-title">BẢNG TỔNG HỢP LƯƠNG THÁNG ${mm} NĂM ${yy}</h2>`;
     foot = sig(SIG7, true);
+  } else if (S.view === 'lk') {
+    head = two(cty, qh) + `<h2 class="pf-title">BẢNG LŨY KẾ TIỀN LƯƠNG NĂM ${yy}</h2>`;
+    foot = sig(SIG7, true);
   } else if (S.view === 'bq') {
     head = two(cty, qh) + `<h2 class="pf-title">BẢNG TIỀN LƯƠNG BÌNH QUÂN THÁNG ${mm} NĂM ${yy}</h2>`;
     foot = sig(SIG7, true);
@@ -1573,9 +1583,43 @@ function printFrame() {
   h.innerHTML = head; f.innerHTML = foot; document.body.classList.toggle('pl-has-frame', !!head);
 }
 
+/* Bảng lũy kế: dòng = đầu mục (Chư Sê theo Bảng phân toán, Thành Công theo Bảng tổng hợp), cột = Tháng 1 … Tháng 12 của năm, cuối là Tổng cộng.
+   Ô = tổng tiền lương của đầu mục trong tháng (ngày thường + ngày lễ). Tháng có trên app lấy số app, tháng cũ lấy dữ liệu đã đẩy lên. */
+const TC_LK_KEYS = { 'III.01': ['vt'], 'III.03': ['lx'], 'IV.01': ['rss_dd', 'rss_gcn', 'rss_tp'], 'IV.02': ['s3_dd', 's3_tp'], 'IV.03': ['s10_ct'], 'IV.04': ['s10_tm'], 'IV.05': ['bx'], 'IV.06': ['bx_tm'], 'V.01': ['lk'] };
+function monthLines(f, m) {
+  const out = {};
+  if (hasApp(m)) {
+    const c = calc(f, m);
+    if (f === 'chuse') { let g = ''; c.pt.forEach(o => { if (o.kind === 'g') g = o.stt; else if (o.kind === 'r') out[g + '.' + o.stt] = o.tt + o.tl; }); out.B = c.ptAn || 0; }
+    else Object.entries(TC_LK_KEYS).forEach(([code, ks]) => { out[code] = sumBy(c.rows, r => sumBy(ks, k => (r.ln && r.ln[k] ? r.ln[k].v + r.ln[k].lv : 0))); });
+    return { src: 'app', v: out };
+  }
+  const o = oldGet(f, m); if (!o) return { src: 'none', v: out };
+  Object.entries(o.rows).forEach(([code, v]) => { out[code] = code === 'B' || f === 'thanhcong' ? (+v.v || 0) : oldTotal(f, v); }); // Thành Công: chỉ lấy lương, không gồm tiền ăn ca
+  return { src: 'old', v: out };
+}
+function renderLk() {
+  const cs = S.f === 'chuse', yy = S.m.slice(0, 4), months = Array.from({ length: 12 }, (_, i) => `${yy}-${String(i + 1).padStart(2, '0')}`);
+  $('#pl-t-title').textContent = `Bảng lũy kế tiền lương năm ${yy}`; $('#pl-sub').innerHTML = '';
+  const data = months.map(m => (ALL_MONTHS.includes(m) ? monthLines(S.f, m) : { src: 'na', v: {} }));
+  const rows = oldRows(S.f).filter(o => !(o.k === 'g' && o.code === 'A'));
+  const sumRow = codes => data.map(d => sumBy(codes, k => d.v[k] || 0));
+  const kids = {}; let g = null; rows.forEach(o => { if (o.k === 'g') { g = o.code; kids[g] = []; } else if (o.k === 'r' && g) kids[g].push(o.code); });
+  const leaf = rows.filter(o => o.k !== 'g').map(o => o.code);
+  const cell = (v, d) => `<td class="n">${d.src === 'na' || d.src === 'none' ? '' : v ? fmt(v) : ''}</td>`;
+  const line = (cls, stt, name, vals) => `<tr class="${cls}"><td class="s1">${stt}</td><td class="s2">${esc(name)}</td>${vals.map((v, i) => cell(v, data[i])).join('')}<td class="n pay">${fmt(sumBy(vals, x => x))}</td></tr>`;
+  const body = rows.map(o => o.k === 'g' ? line('g', o.code, o.name, sumRow(kids[o.code] || [])) : line('p', o.k === 'b' ? 'B' : o.code.split('.')[1], o.name, sumRow([o.code]))).join('');
+  const head = `<thead><tr><th class="s1">STT</th><th class="s2" style="min-width:260px">Nội dung</th>${months.map((m, i) => `<th style="min-width:92px"${data[i].src === 'old' ? ' title="Dữ liệu cũ đã đẩy lên"' : data[i].src === 'none' ? ' title="Chưa có số"' : ''}>Tháng ${i + 1}${data[i].src === 'old' ? '<br><span style="font-weight:400;font-size:10.5px">(dữ liệu cũ)</span>' : ''}</th>`).join('')}<th>Tổng cộng</th></tr></thead>`;
+  $('#pl-t').innerHTML = head + `<tbody>${body}<tr class="tot"><td class="s1"></td><td class="s2">TỔNG CỘNG</td>${sumRow(leaf).map((v, i) => cell(v, data[i])).join('')}<td class="n">${fmt(sumBy(sumRow(leaf), x => x))}</td></tr></tbody>`;
+  const miss = data.filter((d, i) => d.src === 'none').length;
+  $('#pl-t-info').innerHTML = miss ? `<span class="warnc">${miss} tháng chưa có số</span> · <button class="lnk" data-tab="cu">Đẩy dữ liệu cũ</button>` : '';
+  $('#pl-note').innerHTML = (cs ? 'Dòng theo Bảng phân toán; mỗi ô là tổng tiền lương (ngày thường + ngày lễ) của dòng đó trong tháng, dòng B là tiền ăn ca. ' : 'Dòng theo Bảng tổng hợp; mỗi ô là tổng tiền lương (ngày thường + ngày lễ) của đầu mục trong tháng. ')
+    + 'Tháng có trên app lấy số app; tháng 01–09/2026 chưa có trên app lấy dữ liệu cũ đã đẩy lên ở tab Dữ liệu lương các tháng trước (tiêu đề cột ghi "dữ liệu cũ"); ô trống là tháng chưa có số. Bảng lũy kế không chịu ảnh hưởng của bộ lọc Bộ phận / Công việc.';
+}
+
 function renderTable() {
-  $('#pl-toggle').hidden = S.view === 'ck' || S.view === 'th' || S.view === 'bq';
-  ({ luong: renderLuong, pt: renderPt, ht: renderHt, ck: renderCk, th: renderTh, bq: renderBq })[S.view]();
+  $('#pl-toggle').hidden = S.view === 'ck' || S.view === 'th' || S.view === 'bq' || S.view === 'lk';
+  ({ luong: renderLuong, pt: renderPt, ht: renderHt, ck: renderCk, th: renderTh, bq: renderBq, lk: renderLk })[S.view]();
   printFrame();
   const t = $('#pl-t'), tr = t.querySelectorAll('thead tr');
   let h = 0; ['--h1', '--h2', '--h3'].forEach((v, i) => { if (tr[i]) h += tr[i].getBoundingClientRect().height; t.style.setProperty(v, h + 'px'); });
@@ -1633,7 +1677,7 @@ function exportTable() {
   const tc = ws.A3; if (tc) tc.s = { font: font({ bold: true, sz: 14 }) };
   ws['!rows'] = []; for (let i = 0; i < nh; i++) ws['!rows'][4 + i] = { hpt: 30 };
   ws['!cols'] = Array.from({ length: rg.e.c + 1 }, (_, i) => ({ wch: i === 0 ? 6 : i === 1 ? 28 : 13 }));
-  const wb = X.utils.book_new(), kind = { luong: 'bang-luong', pt: 'bang-phan-toan', ht: 'bang-hach-toan' + (S.htp === 'l' ? '-ngay-le' : ''), ck: 'bang-chuyen-khoan', th: 'bang-tong-hop', bq: 'luong-binh-quan' }[S.view].replace('bang-phan-toan', S.f === 'chuse' ? 'bang-phan-toan' : 'bang-nghiem-thu');
+  const wb = X.utils.book_new(), kind = { luong: 'bang-luong', pt: 'bang-phan-toan', ht: 'bang-hach-toan' + (S.htp === 'l' ? '-ngay-le' : ''), ck: 'bang-chuyen-khoan', th: 'bang-tong-hop', bq: 'luong-binh-quan', lk: 'bang-luy-ke' }[S.view].replace('bang-phan-toan', S.f === 'chuse' ? 'bang-phan-toan' : 'bang-nghiem-thu');
   X.utils.book_append_sheet(wb, ws, kind.slice(0, 31));
   const name = `${kind}-${S.f === 'chuse' ? 'chu-se' : 'thanh-cong'}-${S.m.slice(5)}-${S.m.slice(0, 4)}.xlsx`;
   X.writeFile(wb, name); toast('Đã xuất ' + name);
@@ -1971,6 +2015,163 @@ function thuHoAfter() {
     if (a === 'apply') applyUpload();
     if (a === 'reset' && confirm(`Xóa số thu hộ của tháng ${mLbl(S.m)}? Các khoản khấu trừ qua lương sẽ tính bằng 0.`)) { delete TH[S.f][S.m]; thSave(); render(); toast('Đã xóa số thu hộ tháng ' + mLbl(S.m)); }
     if (a === 'demo') { TH[S.f] = TH[S.f] || {}; TH[S.f][S.m] = thDemo(S.f, S.m); thSave(); render(); toast('Đã nạp số mẫu tháng ' + mLbl(S.m)); }
+  }));
+}
+
+/* ============ 10. DỮ LIỆU LƯƠNG CÁC THÁNG TRƯỚC: đẩy số tổng của các tháng chưa có trên app (01/2026 – 09/2026) ============
+   Chư Sê: form theo Bảng phân toán (mỗi dòng: Sản lượng, Định mức, Công, Tiền của ngày thường và ngày lễ; B: tiền ăn ca). Tổng tiền lương tự tính.
+   Thành Công: form theo Bảng tổng hợp (mỗi đầu mục: Lương công, thành tiền; Tiền ăn ca công, thành tiền). Tổng cộng tự tính.
+   Mỗi tháng một file, lần tải sau ghi đè lần trước; tháng đã có số trên app thì không cho đẩy. Số đã đẩy dùng cho Bảng lũy kế. */
+const OLD_KEY = 'luong:old:v1', OLD_RANGE = ['2026-01', '2026-09'];
+const OLD = (() => { try { return JSON.parse(localStorage.getItem(OLD_KEY)) || {}; } catch (e) { return {}; } })();
+const oldSave = () => { try { localStorage.setItem(OLD_KEY, JSON.stringify(OLD)); } catch (e) { /* giữ trong phiên */ } };
+const oldGet = (f, m) => (OLD[f] && OLD[f][m]) || null;
+const oldAllowed = m => m >= OLD_RANGE[0] && m <= OLD_RANGE[1] && !hasApp(m);
+// dòng của form, lấy theo cấu trúc bảng của tháng mới nhất trên app
+function oldRows(f) {
+  if (f === 'thanhcong') return [['g', 'III', 'Lương vận chuyển'], ['r', 'III.01', 'Lương vận chuyển vật tư / thử việc'], ['r', 'III.03', 'Lương vận chuyển mủ'],
+    ['g', 'IV', 'Lương công nhân trực tiếp'], ['r', 'IV.01', 'Lương chế biến mủ RSS'], ['r', 'IV.02', 'Lương chế biến mủ SVR3L-5'], ['r', 'IV.03', 'Lương chế biến mủ SVR10-20'],
+    ['r', 'IV.04', 'Lương chế biến mủ SVR10-20 TM'], ['r', 'IV.05', 'Bốc xếp mủ đông tạp'], ['r', 'IV.06', 'Bốc xếp mủ đông tạp TM'], ['g', 'V', 'Lương khác'], ['r', 'V.01', 'Lương khác']]
+    .map(([k, code, name]) => ({ k, code, name }));
+  const pt = calc('chuse', MONTHS[MONTHS.length - 1]).pt, out = []; let g = '';
+  pt.forEach(o => { if (o.kind === 'sec' && o.stt === 'A') out.push({ k: 'g', code: 'A', name: o.name }); else if (o.kind === 'g') { g = o.stt; out.push({ k: 'g', code: g, name: o.name }); } else if (o.kind === 'r') out.push({ k: 'r', code: g + '.' + o.stt, name: o.name }); });
+  out.push({ k: 'b', code: 'B', name: 'Tiền ăn ca' });
+  return out;
+}
+const OLD_COLS = {
+  chuse: [['t', 'Ngày thường · Sản lượng', '#,##0.000'], ['dm', 'Ngày thường · Định mức', '0.000'], ['c', 'Ngày thường · Công', '#,##0.00'], ['v', 'Ngày thường · Tiền', '#,##0'],
+    ['lt', 'Ngày lễ · Sản lượng', '#,##0.000'], ['ldm', 'Ngày lễ · Định mức', '0.000'], ['lc', 'Ngày lễ · Công', '#,##0.00'], ['lv', 'Ngày lễ · Tiền', '#,##0']],
+  thanhcong: [['c', 'Lương · Công', '#,##0.00'], ['v', 'Lương · Thành tiền', '#,##0'], ['ac', 'Tiền ăn ca · Công', '#,##0.00'], ['av', 'Tiền ăn ca · Thành tiền', '#,##0']],
+};
+const oldTotal = (f, o) => (f === 'chuse' ? (+o.v || 0) + (+o.lv || 0) : (+o.v || 0) + (+o.av || 0));
+
+function buildOldForm(f, m) {
+  const X = window.XLSX, F = FAC[f], cols = OLD_COLS[f], rows = oldRows(f), cur = oldGet(f, m), N = 3 + cols.length + 1;
+  const bd = { style: 'thin', color: { rgb: '000000' } }, B = { top: bd, bottom: bd, left: bd, right: bd }, font = (o = {}) => ({ name: 'Times New Roman', sz: 11, ...o });
+  const st = { t: { font: font({ bold: true, sz: 14 }), alignment: { horizontal: 'center' } }, b: { font: font({ bold: true }) }, i: { font: font({ italic: true, color: { rgb: '595959' } }), alignment: { wrapText: true, vertical: 'top' } },
+    h: { font: font({ bold: true }), alignment: { horizontal: 'center', vertical: 'center', wrapText: true }, border: B, fill: { fgColor: { rgb: 'E2EFDA' } } }, g: { font: font({ bold: true }), border: B, fill: { fgColor: { rgb: 'F2F2F2' } } },
+    c: { font: font(), border: B }, in: { font: font(), border: B, fill: { fgColor: { rgb: 'FFF2CC' } } }, off: { font: font(), border: B, fill: { fgColor: { rgb: 'D9D9D9' } } } };
+  const ws = {}, merges = []; let R = 0;
+  const put = (r, c, v, s, z) => { const cell = { v: v == null ? '' : v, t: typeof v === 'number' ? 'n' : 's', s }; if (z) { cell.z = z; cell.s = Object.assign({}, s, { numFmt: z }); } ws[colL(c) + (r + 1)] = cell; };
+  const line = (txt, s) => { put(R, 0, txt, s); for (let c = 1; c < N; c++) put(R, c, '', s); merges.push({ s: { r: R, c: 0 }, e: { r: R, c: N - 1 } }); R++; };
+  put(R, 0, 'CÔNG TY TNHH MTV CAO SU CHƯ SÊ', st.b); R++; put(R, 0, ('Nhà máy chế biến cao su ' + F.name).toLocaleUpperCase('vi-VN'), st.b); R += 2;
+  line(f === 'chuse' ? 'BẢNG PHÂN TOÁN TIỀN LƯƠNG SẢN PHẨM (DỮ LIỆU CŨ)' : 'BẢNG TỔNG HỢP LƯƠNG (DỮ LIỆU CŨ)', st.t);
+  line('Tháng ' + mLbl(m), { font: font({ bold: true }), alignment: { horizontal: 'center' } });
+  line('Điền vào các ô nền vàng, ô xám bỏ trống. Giữ nguyên cột Mã dòng và tiêu đề cột. Cột tổng do app tự tính khi tải lên. File không có công thức.', st.i); R++;
+  const hdr = ['Mã dòng', 'Nội dung', 'ĐVT'].concat(cols.map(c => c[1]), [f === 'chuse' ? 'Tổng tiền lương (app tự tính)' : 'Tổng cộng (app tự tính)']);
+  hdr.forEach((h, i) => put(R, i, h, st.h)); ws['!rows'] = []; ws['!rows'][R] = { hpt: 44 }; R++;
+  rows.forEach(o => {
+    if (o.k === 'g') { put(R, 0, o.code, st.g); put(R, 1, o.name, st.g); for (let c = 2; c < N; c++) put(R, c, '', st.g); R++; return; }
+    const v = (cur && cur.rows[o.code]) || {};
+    put(R, 0, o.code, st.c); put(R, 1, o.name, st.c); put(R, 2, o.k === 'b' ? 'đ' : (f === 'chuse' ? 'Tấn' : ''), st.c);
+    cols.forEach(([k, , z], i) => { const off = o.k === 'b' && k !== 'v'; put(R, 3 + i, off || v[k] == null ? null : +v[k], off ? st.off : st.in, z); });
+    put(R, N - 1, '', st.off); R++;
+  });
+  R += 1; ws['!ref'] = 'A1:' + colL(N - 1) + R; ws['!merges'] = merges; ws['!cols'] = [{ wch: 9 }, { wch: 46 }, { wch: 6 }].concat(cols.map(() => ({ wch: 14 })), [{ wch: 16 }]);
+  const meta = X.utils.aoa_to_sheet([['factory', f], ['month', m], ['form', 'du-lieu-cu-v1']]);
+  const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, 'Du lieu cu'); X.utils.book_append_sheet(wb, meta, '_meta'); wb.Workbook = { Sheets: [{ Hidden: 0 }, { Hidden: 1 }] };
+  return wb;
+}
+function parseOldForm(buf, fileName) {
+  const X = window.XLSX, f = S.f, F = FAC[f], cols = OLD_COLS[f], out = { file: fileName, f, m: S.m, rows: [], fatal: '', warn: [] };
+  let wb; try { wb = X.read(buf, { type: 'array' }); } catch (e) { out.fatal = 'Không đọc được file. Hãy lưu lại dưới dạng Excel (.xlsx) rồi tải lên.'; return out; }
+  const meta = wb.Sheets._meta ? Object.fromEntries(X.utils.sheet_to_json(wb.Sheets._meta, { header: 1 }).map(r => [r[0], r[1]])) : {};
+  if (meta.form && meta.form !== 'du-lieu-cu-v1') { out.fatal = 'Đây không phải form dữ liệu lương cũ. Tải form ở tab này rồi điền lại.'; return out; }
+  if (meta.factory && meta.factory !== f) { out.fatal = `File này là form của ${FAC[meta.factory] ? FAC[meta.factory].full : meta.factory}, nhà máy đang chọn là ${F.full}.`; return out; }
+  if (meta.month && meta.month !== S.m) out.warn.push(`File là form tháng ${mLbl(meta.month)}, số sẽ ghi vào tháng đang chọn ${mLbl(S.m)}.`);
+  const ws = wb.Sheets['Du lieu cu'] || wb.Sheets[wb.SheetNames[0]], aoa = X.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+  const hr = aoa.findIndex(r => r && r.some(c => noMark(c) === 'ma dong'));
+  if (hr < 0) { out.fatal = 'Không tìm thấy dòng tiêu đề có cột "Mã dòng".'; return out; }
+  const head = aoa[hr].map(noMark), ci = {}; cols.forEach(([k, h]) => { ci[k] = head.indexOf(noMark(h)); });
+  const miss = cols.filter(([k]) => ci[k] < 0).map(c => c[1]); if (miss.length) { out.fatal = 'Thiếu cột: ' + miss.join(', '); return out; }
+  const def = Object.fromEntries(oldRows(f).filter(o => o.k !== 'g').map(o => [o.code, o]));
+  for (let i = hr + 1; i < aoa.length; i++) {
+    const r = aoa[i]; if (!r) continue; const code = String(r[0] == null ? '' : r[0]).trim(); if (!def[code]) continue;
+    const row = { line: i + 1, code, name: def[code].name, v: {}, errs: [], warns: [] };
+    cols.forEach(([k, h]) => { let n = numOf(r[ci[k]]); if (Number.isNaN(n)) { row.errs.push(`${h}: "${r[ci[k]]}" không phải số`); n = null; } if (n != null && n < 0) { row.errs.push(`${h} âm`); n = null; }
+      if (def[code].k === 'b' && k !== 'v' && n) { row.warns.push(`Dòng ăn ca chỉ nhận cột tiền, bỏ qua ${h}`); n = null; } row.v[k] = n; });
+    if (f === 'chuse') [['t', 'dm', 'c', 'Ngày thường'], ['lt', 'ldm', 'lc', 'Ngày lễ']].forEach(([t, dm, c, lb]) => { const v = row.v; if (v[t] != null && v[dm] != null && v[c] != null && Math.abs(v[t] * v[dm] - v[c]) > 0.05) row.warns.push(`${lb}: Công ${fc(v[c])} khác Sản lượng × Định mức = ${fc(v[t] * v[dm])}`); });
+    if (cols.every(([k]) => row.v[k] == null)) continue;
+    out.rows.push(row);
+  }
+  if (!out.rows.length) out.fatal = 'File chưa có số ở dòng nào.';
+  return out;
+}
+function applyOld() {
+  const u = S.cup; if (!u || u.fatal || !oldAllowed(S.m)) return;
+  const rows = {}; u.rows.forEach(r => { if (!r.errs.length) rows[r.code] = r.v; });
+  OLD[u.f] = OLD[u.f] || {}; const prev = OLD[u.f][S.m];
+  OLD[u.f][S.m] = { src: 'file', file: u.file, at: Date.now(), count: (prev ? prev.count || 1 : 0) + 1, rows }; oldSave();
+  toast(`Đã cập nhật dữ liệu cũ tháng ${mLbl(S.m)} (${Object.keys(rows).length} dòng)`); S.cup = null; render();
+}
+// số tổng của một tháng cho Bảng lũy kế: tháng có trên app lấy từ app, tháng cũ lấy từ số đã đẩy lên
+function monthSum(f, m) {
+  if (hasApp(m)) { const c = calc(f, m), rr = c.rows;
+    if (f === 'chuse') { const A = c.pt.find(x => x.kind === 'sec' && x.stt === 'A') || {}; return { src: 'app', c: A.ct || 0, v: A.tt || 0, lc: A.cl || 0, lv: A.tl || 0, an: c.ptAn || 0 }; }
+    return { src: 'app', c: sumBy(rr, x => x.CQD), v: sumBy(rr, x => x.TL), ac: sumBy(rr, x => x.an), av: sumBy(rr, x => x.at) }; }
+  const o = oldGet(f, m); if (!o) return { src: 'none' };
+  const rs = Object.entries(o.rows), lines = rs.filter(([k]) => k !== 'B').map(([, v]) => v), b = (o.rows.B || {});
+  if (f === 'chuse') return { src: 'old', c: sumBy(lines, v => v.c), v: sumBy(lines, v => v.v), lc: sumBy(lines, v => v.lc), lv: sumBy(lines, v => v.lv), an: +b.v || 0 };
+  return { src: 'old', c: sumBy(lines, v => v.c), v: sumBy(lines, v => v.v), ac: sumBy(lines, v => v.ac), av: sumBy(lines, v => v.av) };
+}
+
+function cuHTML() {
+  const F = FAC[S.f], cs = S.f === 'chuse', cur = oldGet(S.f, S.m), ok = oldAllowed(S.m), u = S.cup && S.cup.f === S.f && S.cup.m === S.m ? S.cup : null, cols = OLD_COLS[S.f];
+  const why = hasApp(S.m) ? `Tháng ${mLbl(S.m)} đã có số trên app nên không đẩy dữ liệu cũ. Chọn tháng từ ${mLbl(OLD_RANGE[0])} chưa có số trên app ở thanh trên.` : `Chỉ đẩy dữ liệu cũ cho các tháng ${mLbl(OLD_RANGE[0])} – ${mLbl(OLD_RANGE[1])} chưa có số trên app.`;
+  const val = (k, v) => (v == null ? '' : k === 't' || k === 'lt' ? f3(v) : k === 'dm' || k === 'ldm' ? fdm(v) : k === 'c' || k === 'lc' || k === 'ac' ? fc(v) : fmt(v));
+  let check = '';
+  if (u) {
+    const bad = u.rows.filter(r => r.errs.length), wn = u.rows.filter(r => !r.errs.length && r.warns.length);
+    check = `<section class="card"><div class="card-h"><h3>Kiểm tra file ${esc(u.file)}</h3><div class="toolbar"><button class="btn" data-cu="cancel">Bỏ file</button><button class="btn primary" data-cu="apply"${u.fatal || !ok ? ' disabled' : ''}>${cur ? 'Ghi đè' : 'Cập nhật vào'} tháng ${mLbl(S.m)}</button></div></div>
+      ${u.fatal ? `<div class="banner bad">${esc(u.fatal)}</div>` : `${u.warn.map(w => `<div class="banner warn" style="margin-bottom:8px">${esc(w)}</div>`).join('')}
+      ${cur ? `<div class="banner warn" style="margin-bottom:8px">Tháng ${mLbl(S.m)} đã có file <b>${esc(cur.file)}</b>. Bấm Ghi đè thì toàn bộ số của tháng này được thay bằng file mới.</div>` : ''}
+      <div class="kpis" style="margin-bottom:10px"><div class="kpi"><div class="s">Dòng có số</div><div class="v">${u.rows.length}</div></div><div class="kpi"><div class="s">Lỗi, sẽ bỏ qua</div><div class="v${bad.length ? ' bad' : ''}">${bad.length}</div></div><div class="kpi"><div class="s">Cảnh báo</div><div class="v${wn.length ? ' warnc' : ''}">${wn.length}</div></div><div class="kpi"><div class="s">${cs ? 'Tổng tiền lương' : 'Tổng cộng'}</div><div class="v">${fmt(sumBy(u.rows.filter(r => !r.errs.length && r.code !== 'B'), r => oldTotal(S.f, r.v)) + (cs ? 0 : 0))}</div></div></div>
+      <div class="scroll tall"><table class="th-t sticky"><thead><tr><th>Mã</th><th>Nội dung</th>${cols.map(c => `<th class="r">${esc(c[1])}</th>`).join('')}<th class="r">Tổng</th><th>Kiểm tra</th></tr></thead><tbody>
+      ${u.rows.map(r => `<tr class="${r.errs.length ? 'bad' : r.warns.length ? 'wn' : ''}"><td class="mono">${esc(r.code)}</td><td>${esc(r.name)}</td>${cols.map(([k]) => `<td class="r">${val(k, r.v[k])}</td>`).join('')}<td class="r b">${fmt(oldTotal(S.f, r.v))}</td><td class="msg ${r.errs.length ? 'err' : r.warns.length ? 'warn' : ''}">${r.errs.length || r.warns.length ? esc(r.errs.concat(r.warns).join('; ')) : '<span class="okc">Hợp lệ</span>'}</td></tr>`).join('')}
+      </tbody></table></div>`}</section>`;
+  }
+  const rows = oldRows(S.f);
+  const tbody = rows.map(o => { if (o.k === 'g') return `<tr class="grp-top"><td class="b">${esc(o.code)}</td><td class="b" colspan="${cols.length + 2}">${esc(o.name)}</td></tr>`;
+    const v = (cur && cur.rows[o.code]) || {}; return `<tr><td class="mono small">${esc(o.code)}</td><td>${esc(o.name)}</td>${cols.map(([k]) => `<td class="r">${val(k, v[k])}</td>`).join('')}<td class="r b">${cur ? fmt(oldTotal(S.f, v)) : ''}</td></tr>`; }).join('');
+  const ms = monthSum(S.f, S.m);
+  return `
+  <div class="pane-head"><div><h2>Dữ liệu lương các tháng trước</h2>
+    <p>Đẩy số tổng của các tháng chưa có trên app (${mLbl(OLD_RANGE[0])} – ${mLbl(OLD_RANGE[1])}) để Bảng lũy kế có đủ các tháng. ${cs ? 'Form theo Bảng phân toán: mỗi dòng điền Sản lượng, Định mức, Công, Tiền của ngày thường và ngày lễ; dòng B điền tiền ăn ca.' : 'Form theo Bảng tổng hợp: mỗi đầu mục điền Lương (công, thành tiền) và Tiền ăn ca (công, thành tiền).'} Cột tổng app tự tính.</p></div>
+    <div class="toolbar"><button class="btn" data-tab="luong">Xem Báo cáo lương</button></div></div>
+  ${ok ? '' : `<div class="banner warn">${esc(why)}</div>`}
+  <div class="grid2 th-pair">
+    <section class="card"><div class="card-h"><h3>Tải form tháng ${mLbl(S.m)} · ${esc(F.full)}</h3></div>
+      <div class="th-cols" style="margin-bottom:12px"><span class="chip">Mã dòng</span><span class="chip">Nội dung</span>${cols.map(c => `<span class="chip fill">${esc(c[1])}</span>`).join('')}<span class="chip">${cs ? 'Tổng tiền lương' : 'Tổng cộng'} · app tự tính</span></div>
+      <p class="small muted" style="margin-bottom:10px">File chỉ có giá trị, không có công thức. Mỗi tháng một file, lần tải sau ghi đè toàn bộ lần trước.</p>
+      <div class="toolbar"><span class="grow"></span><button class="btn primary" data-cu="dl"${ok ? '' : ' disabled'}>↓ Tải form Excel</button></div></section>
+    <section class="card th-up"><div class="card-h"><h3>Tải file đã điền lên</h3><span class="small muted">Đổi tháng ở ô Tháng trên thanh trên cùng</span></div>
+      <label class="th-drop" id="cu-drop" for="cu-file"${ok ? '' : ' style="opacity:.5;pointer-events:none"'}><span class="chip info" style="font-size:13px">Tháng ${mLbl(S.m)} · ${esc(F.full)}</span><b>Kéo thả file .xlsx vào đây hoặc bấm để chọn file</b><span class="small muted">Số chỉ cập nhật sau khi bấm Cập nhật ở bước kiểm tra${cur ? '; file mới sẽ ghi đè toàn bộ lần tải trước' : ''}.</span></label>
+      <input type="file" id="cu-file" accept=".xlsx,.xls" hidden>
+      <table class="th-t" style="margin-top:12px"><thead><tr><th>Tháng</th><th>Trạng thái</th><th class="r">Số lần tải</th><th>Lần tải gần nhất</th></tr></thead><tbody>
+        <tr><td class="b">${mLbl(S.m)}</td><td>${hasApp(S.m) ? '<span class="chip ok">Đã có trên app</span>' : cur ? '<span class="chip ok">Đã tải file</span>' : '<span class="chip">Chưa có file</span>'}</td><td class="r mono">${cur ? cur.count || 1 : 0}</td><td>${cur ? `${esc(new Date(cur.at).toLocaleString('vi-VN'))}<div class="small muted">${esc(cur.file)}</div>` : '<span class="muted">—</span>'}</td></tr>
+      </tbody></table></section>
+  </div>
+  ${check}
+  <section class="card flush"><div class="card-h"><div><h3>Số đang lưu tháng ${mLbl(S.m)}</h3>
+    <div class="th-src small" style="margin-top:4px">${hasApp(S.m) ? '<span class="chip ok">Lấy từ app</span><span class="muted">Tháng này dùng số của app, xem chi tiết ở Báo cáo lương</span>' : cur ? `<span class="chip ok">Tải lên từ file</span><span class="muted">${esc(cur.file)}</span><button class="lnk" data-cu="reset">Xóa số đã tải lên</button>` : '<span class="chip">Chưa có</span>'}</div></div></div>
+    ${ms.src !== 'none' ? `<div style="padding:0 14px 12px"><div class="kpis">${cs ? `<div class="kpi"><div class="s">Ngày thường · công</div><div class="v">${fc(ms.c)}</div></div><div class="kpi"><div class="s">Ngày thường · tiền</div><div class="v">${fmt(ms.v)}</div></div><div class="kpi"><div class="s">Ngày lễ · tiền</div><div class="v">${fmt(ms.lv)}</div></div><div class="kpi"><div class="s">Tổng tiền lương</div><div class="v">${fmt(ms.v + ms.lv)}</div></div>`
+      : `<div class="kpi"><div class="s">Lương · công</div><div class="v">${fc(ms.c)}</div></div><div class="kpi"><div class="s">Lương · thành tiền</div><div class="v">${fmt(ms.v)}</div></div><div class="kpi"><div class="s">Tiền ăn ca</div><div class="v">${fmt(ms.av)}</div></div><div class="kpi"><div class="s">Tổng cộng</div><div class="v">${fmt(ms.v + ms.av)}</div></div>`}</div></div>` : ''}
+    ${hasApp(S.m) ? '' : `<div class="scroll tall"><table class="th-t sticky"><thead><tr><th>Mã</th><th>Nội dung</th>${cols.map(c => `<th class="r">${esc(c[1])}</th>`).join('')}<th class="r">${cs ? 'Tổng tiền lương' : 'Tổng cộng'}</th></tr></thead><tbody>${tbody}</tbody></table></div>`}
+  </section>`;
+}
+function cuAfter() {
+  const fi = $('#cu-file'), dz = $('#cu-drop');
+  const read = file => { if (!file || !oldAllowed(S.m)) return; if (!/\.xlsx?$/i.test(file.name)) { toast('Chỉ nhận file Excel .xlsx', 'bad'); return; } const r = new FileReader(); r.onload = () => { S.cup = parseOldForm(new Uint8Array(r.result), file.name); render(); }; r.readAsArrayBuffer(file); };
+  fi.addEventListener('change', () => { read(fi.files[0]); fi.value = ''; });
+  ['dragenter', 'dragover'].forEach(t => dz.addEventListener(t, e => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(t => dz.addEventListener(t, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', e => read(e.dataTransfer.files[0]));
+  document.querySelectorAll('[data-cu]').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.cu;
+    if (a === 'dl' && oldAllowed(S.m)) { const name = `du-lieu-luong-cu-${S.f === 'chuse' ? 'chu-se' : 'thanh-cong'}-${S.m.slice(5)}-${S.m.slice(0, 4)}.xlsx`; window.XLSX.writeFile(buildOldForm(S.f, S.m), name); toast('Đã tải ' + name); }
+    if (a === 'cancel') { S.cup = null; render(); }
+    if (a === 'apply') applyOld();
+    if (a === 'reset' && confirm(`Xóa dữ liệu cũ đã tải lên của tháng ${mLbl(S.m)}?`)) { delete OLD[S.f][S.m]; oldSave(); render(); toast('Đã xóa dữ liệu cũ tháng ' + mLbl(S.m)); }
   }));
 }
 
