@@ -681,6 +681,15 @@ table.pl-t{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:
   body.pl-print-table .pl-t td.sub{padding-left:14px}
 }
 @media print{body.pl-print-table .pl-note,body.pl-print-table #pl-note{display:none!important}}
+/* in: không cắt phần đầu trang và phần ký tên sang 2 trang; tiêu đề cột lặp lại khi bảng sang trang mới */
+@media print{
+  body.pl-print-table #pl-phead,body.pl-print-table #pl-pfoot{break-inside:avoid;page-break-inside:avoid}
+  body.pl-print-table #pl-pfoot{break-before:auto}
+  body.pl-print-table .pf-sig,body.pl-print-table .pf-sig>div{break-inside:avoid;page-break-inside:avoid}
+  body.pl-print-table .pf-sig .pf-name{margin-top:42px}
+  body.pl-print-table .pl-t thead{display:table-header-group}
+  body.pl-print-table .pl-t tr.tot td{break-after:avoid;page-break-after:avoid}
+}
 
 </style>
 </head>
